@@ -21,7 +21,6 @@ const summaryHtml = paper.paper_summary ? marked.parse(paper.paper_summary) : ''
 // so it reads the paper's AGENTS.md (Claude Code through CLAUDE.md) on startup.
 const folder = paper.repo_url.split('/').pop()!;
 const clone = `git clone --recurse-submodules --branch ${current.tag} ${paper.repo_url}.git\ncd ${folder}`;
-const releaseUrl = current.release_url;
 // Paper-style author block: each distinct affiliation is numbered once.
 const affiliations = [...new Set((paper.authors ?? []).map((a) => a.affiliation).filter(Boolean))] as string[];
 const affNo = (a?: string) => (a ? affiliations.indexOf(a) + 1 : 0);
@@ -79,7 +78,7 @@ const showAffNo = affiliations.length > 1;
 				answers questions grounded in the paper, code, and data. Any agent that reads <code>AGENTS.md</code> works.
 			</p>
 			<p>
-				To consult the paper from inside another project, run <code>/load-paper {releaseUrl}</code> with the
+				To consult the paper from inside another project, run <code>/load-paper {current.release_url}</code> with the{' '}
 				<a href={url('/publish/')}>APP plugin</a> installed. It brings the paper into that project and checks that the release is a
 				verified APP publication.
 			</p>
@@ -103,36 +102,29 @@ const showAffNo = affiliations.length > 1;
 			)
 		}
 
-		{paper.versions.length > 1 && (
-		<section aria-labelledby="versions">
-			<h2 id="versions">Versions</h2>
-			<table>
-				<tbody>
-					{
-						[...paper.versions].reverse().map((v) => (
-							<tr>
-								<td>{versionId(paper, v.v)}</td>
-								<td><a href={v.release_url}>{v.tag}</a></td>
-								<td>{formatDate(v.listed_at)}</td>
-							</tr>
-						))
-					}
-				</tbody>
-			</table>
-		</section>
-		)}
+		{
+			paper.versions.length > 1 && (
+				<section aria-labelledby="versions">
+					<h2 id="versions">Versions</h2>
+					<table>
+						<tbody>
+							{[...paper.versions].reverse().map((v) => (
+								<tr>
+									<td>{versionId(paper, v.v)}</td>
+									<td><a href={v.release_url}>{v.tag}</a></td>
+									<td>{formatDate(v.listed_at)}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</section>
+			)
+		}
 		<PublishCta />
 	</article>
 </StarlightPage>
 
 <style>
-	/* The page h1 is the paper title. */
-	:global(main:has(.paper) h1) {
-		font-family: var(--app-serif);
-		font-optical-sizing: auto;
-		font-weight: 500;
-		line-height: 1.15;
-	}
 	.paper { max-width: 46rem; }
 	.authors { font-size: var(--sl-text-lg); color: var(--sl-color-white); }
 	.authors sup { font-size: 0.65em; margin-inline-start: 0.1em; }

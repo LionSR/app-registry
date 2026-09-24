@@ -26,7 +26,11 @@ Verification reuses `verify()` from `protocol/scripts/app_discussion_bot.py`.
 ```bash
 python registry/scripts/registry.py check <release-url>          # run the checks only
 python registry/scripts/registry.py add <release-url> [--dry-run]  # check and write the entry
-python registry/scripts/import_discussion36.py                     # one-off seed from Discussion #36
+python registry/scripts/test_submission.py                         # review-bot tests against real releases
 ```
+
+`submission.py` is the review bot that `.github/workflows/submission.yml` runs on submission issues. Its slash commands (`/recheck`, `/accept`, `/decline`) and who may use them are declared in its `COMMANDS` table; editors are listed in `editors.txt`.
+
+The first entries were imported from the list in Discussion #36 of the protocol repository, dated by when each release first appeared there (see the commit history for the import script).
 
 A GitHub token (from `GITHUB_TOKEN`, `GH_TOKEN` or `gh auth token`) avoids API rate limits.

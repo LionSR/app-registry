@@ -12,28 +12,33 @@ export interface Release {
 }
 
 const NAME = '[A-Za-z0-9_.-]+';
-const PATTERNS = [
+const RELEASE_PATTERNS = [
 	new RegExp(`^https://github\\.com/(${NAME})/(${NAME})/releases/tag/([^/\\s?#]+)/?$`),
 	new RegExp(`^(${NAME})/(${NAME})@([^/\\s?#]+)$`),
 ];
+// owner/repo, a repository URL, or a release or tree URL; the tag is optional.
+const REPO_PATTERN = new RegExp(`^(?:https://github\\.com/)?(${NAME})/(${NAME})(?:/(?:releases/tag|tree)/([^\\s?#]+))?$`);
+
+/** One release, with its canonical GitHub URL. */
+export function release(owner: string, repo: string, tag: string): Release {
+	repo = repo.replace(/\.git$/, '');
+	return { owner, repo, tag, url: `https://github.com/${owner}/${repo}/releases/tag/${encodeURIComponent(tag)}` };
+}
 
 /** Accepts a release URL or owner/repo@tag. The tag is required: a submission is one release. */
 export function parseRelease(input: string): Release | null {
 	const text = input.trim();
-	for (const re of PATTERNS) {
+	for (const re of RELEASE_PATTERNS) {
 		const m = text.match(re);
-		if (m) {
-			const [, owner, rawRepo, tag] = m;
-			const repo = rawRepo.replace(/\.git$/, '');
-			const decoded = decodeURIComponent(tag);
-			return { owner, repo, tag: decoded, url: `https://github.com/${owner}/${repo}/releases/tag/${encodeURIComponent(decoded)}` };
-		}
+		if (m) return release(m[1], m[2], decodeURIComponent(m[3]));
 	}
 	return null;
 }
 
-export function isRelationship(value: unknown): value is Relationship {
-	return typeof value === 'string' && (RELATIONSHIPS as readonly string[]).includes(value);
+/** Looser, for the submit form: owner/repo or any GitHub repository, release, or tree URL. */
+export function parseRepo(input: string): { owner: string; repo: string; tag?: string } | null {
+	const m = input.trim().replace(/\/$/, '').replace(/\.git$/, '').match(REPO_PATTERN);
+	return m ? { owner: m[1], repo: m[2].replace(/\.git$/, ''), tag: m[3] ? decodeURIComponent(m[3]) : undefined } : null;
 }
 
 const RELATION_TEXT: Record<Relationship, string> = {

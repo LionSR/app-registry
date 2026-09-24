@@ -69,3 +69,12 @@ test('CORS preflight only for the site', async () => {
 test('unknown routes return 404', async () => {
 	assert.equal((await handle(new Request('https://ref.supabase.co/functions/v1/registry/other'))).status, 404);
 });
+
+test('explains a missing or malformed body', async () => {
+	const raw = await handle(new Request('https://ref.supabase.co/functions/v1/registry/submit', { method: 'POST', headers: { authorization: 'Bearer good-user-token' }, body: 'not json' }));
+	assert.equal(raw.status, 400);
+	assert.match((await raw.json()).error, /Send a JSON body/);
+	const missing = await post({ relationship: 'author' }, { authorization: 'Bearer good-user-token' });
+	assert.equal(missing.status, 400);
+	assert.match((await missing.json()).error, /release_url/);
+});

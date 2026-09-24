@@ -26,8 +26,9 @@ import json
 import os
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from registry import ENTRIES, ROOT, add, check_release, github_token, load_entries
 
@@ -151,74 +152,93 @@ def site_link(entry_id: str) -> str:
     return f"{base}/papers/{entry_id}/" if base else f"registry/entries/{entry_id}.json"
 
 
+@dataclass
+class Command:
+    """A slash command in a submission issue."""
+
+    run: Callable[[dict[str, Any], str, str, dict[str, Any]], dict[str, Any]]  # (submission, actor, argument, context)
+    allowed: frozenset[str]  # "submitter" and/or "editor"
+    denied: str  # shown to anyone else
+    needs_argument: str = ""  # usage hint when the argument is required
+
+
+def recheck(sub: dict[str, Any], actor: str, arg: str, ctx: dict[str, Any]) -> dict[str, Any]:
+    return plan_for_checks(sub, run_checks(sub, ctx["token"]))
+
+
+def decline(sub: dict[str, Any], actor: str, reason: str, ctx: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "act": True,
+        "state": "declined",
+        "close": "not planned",
+        "comment": f"### Declined\n\n@{sub['submitter']}, an editor declined this submission:\n\n> {reason}\n\n"
+        "Reply here if you want to respond. An editor can reopen the submission.\n\n"
+        + status_block("declined", [{"name": "editor-decision", "ok": False, "detail": reason}]),
+    }
+
+
+def accept(sub: dict[str, Any], actor: str, arg: str, ctx: dict[str, Any]) -> dict[str, Any]:
+    result = run_checks(sub, ctx["token"])
+    if result["state"] != "awaiting-editor":
+        return plan_for_checks(sub, result)
+    entry, what = add(result["verified"], ctx["today"])
+    v = entry["versions"][-1]
+    cite_id = entry["id"] if v["v"] == 1 else f"{entry['id']}v{v['v']}"
+    title = f"Add {entry['id']}: {entry['title']}" if what == "new" else f"Add {v['tag']} to {entry['id']}: {entry['title']}"
+    return {
+        "act": True,
+        "state": "accepted",
+        "close": "completed",
+        "entry_path": str((ENTRIES / f"{entry['id']}.json").relative_to(ROOT)),
+        "commit_message": f"{title}\n\nAccepted by @{actor} in #{ctx['issue_number']}.",
+        "comment": f"### Listed as {cite_id}\n\n@{sub['submitter']}, your paper is now in the registry: {site_link(entry['id'])}\n\n"
+        + status_block("accepted", result["checks"], entry["id"]),
+    }
+
+
+COMMANDS: dict[str, Command] = {
+    "/recheck": Command(recheck, frozenset({"submitter", "editor"}), "only the submitter or an editor can run `/recheck`."),
+    "/accept": Command(accept, frozenset({"editor"}), "only registry editors can use `/accept`."),
+    "/decline": Command(decline, frozenset({"editor"}), "only registry editors can use `/decline`.", needs_argument="add a reason: `/decline <reason>`."),
+}
+
+
+def ignore(reason: str) -> dict[str, Any]:
+    return {"act": False, "reason": reason}
+
+
 def decide(event_name: str, event: dict[str, Any], bot_login: str, token: str | None, today: dt.date) -> dict[str, Any]:
     issue = event.get("issue") or {}
     if issue.get("pull_request"):
-        return {"act": False, "reason": "pull request"}
+        return ignore("pull request")
     if (issue.get("user") or {}).get("login", "").lower() != bot_login.lower():
-        return {"act": False, "reason": "issue was not opened by the registry app"}
+        return ignore("issue was not opened by the registry app")
     sub = parse_submission(issue.get("body") or "")
     if not sub:
-        return {"act": False, "reason": "no submission data in issue body"}
+        return ignore("no submission data in issue body")
 
-    if event_name == "issues":
-        if event.get("action") != "opened":
-            return {"act": False, "reason": f"issues/{event.get('action')} ignored"}
+    if (event_name, event.get("action")) == ("issues", "opened"):
         return plan_for_checks(sub, run_checks(sub, token))
-
-    if event_name != "issue_comment" or event.get("action") != "created":
-        return {"act": False, "reason": f"{event_name} ignored"}
+    if (event_name, event.get("action")) != ("issue_comment", "created"):
+        return ignore(f"{event_name}/{event.get('action')} ignored")
 
     comment = event.get("comment") or {}
     actor = (comment.get("user") or {}).get("login", "")
     if actor.lower() == bot_login.lower():
-        return {"act": False, "reason": "own comment"}
-    words = (comment.get("body") or "").strip().split(None, 1)
-    command = words[0].lower() if words else ""
-    arg = words[1].strip() if len(words) > 1 else ""
-    is_editor = actor.lower() in editors()
-    is_submitter = actor.lower() == sub["submitter"].lower()
+        return ignore("own comment")
+    word, _, arg = (comment.get("body") or "").strip().partition(" ")
+    command = COMMANDS.get(word.lower())
+    if not command:
+        return ignore("not a command")
 
-    if command == "/recheck":
-        if not (is_submitter or is_editor):
-            return {"act": True, "comment": f"@{actor}, only the submitter or an editor can run `/recheck`."}
-        return plan_for_checks(sub, run_checks(sub, token))
-
-    if command in ("/accept", "/decline") and not is_editor:
-        return {"act": True, "comment": f"@{actor}, only registry editors can use `{command}`."}
-
-    if command == "/decline":
-        if not arg:
-            return {"act": True, "comment": f"@{actor}, add a reason: `/decline <reason>`."}
-        checks = [{"name": "editor-decision", "ok": False, "detail": arg}]
-        return {
-            "act": True,
-            "state": "declined",
-            "close": "not planned",
-            "comment": f"### Declined\n\n@{sub['submitter']}, an editor declined this submission:\n\n> {arg}\n\n"
-            "Reply here if you want to respond. An editor can reopen the submission.\n\n"
-            + status_block("declined", checks),
-        }
-
-    if command == "/accept":
-        result = run_checks(sub, token)
-        if result["state"] != "awaiting-editor":
-            return plan_for_checks(sub, result)
-        entry, what = add(result["verified"], today)
-        v = entry["versions"][-1]
-        cite_id = entry["id"] if v["v"] == 1 else f"{entry['id']}v{v['v']}"
-        title = f"Add {entry['id']}: {entry['title']}" if what == "new" else f"Add {v['tag']} to {entry['id']}: {entry['title']}"
-        return {
-            "act": True,
-            "state": "accepted",
-            "close": "completed",
-            "entry_path": str((ENTRIES / f"{entry['id']}.json").relative_to(ROOT)),
-            "commit_message": f"{title}\n\nAccepted by @{actor} in #{issue.get('number')}.",
-            "comment": f"### Listed as {cite_id}\n\n@{sub['submitter']}, your paper is now in the registry: {site_link(entry['id'])}\n\n"
-            + status_block("accepted", result["checks"], entry["id"]),
-        }
-
-    return {"act": False, "reason": "not a command"}
+    roles = {"editor"} if actor.lower() in editors() else set()
+    if actor.lower() == sub["submitter"].lower():
+        roles.add("submitter")
+    if not roles & command.allowed:
+        return {"act": True, "comment": f"@{actor}, {command.denied}"}
+    if command.needs_argument and not arg.strip():
+        return {"act": True, "comment": f"@{actor}, {command.needs_argument}"}
+    return command.run(sub, actor, arg.strip(), {"token": token, "today": today, "issue_number": issue.get("number")})
 
 
 def main() -> int:

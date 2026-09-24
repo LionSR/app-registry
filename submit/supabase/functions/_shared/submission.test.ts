@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildIssue, corsHeaders, isRelationship, MARKER, parseRelease } from './submission.ts';
+import { buildIssue, corsHeaders, MARKER, parseRelease, parseRepo } from './submission.ts';
 
 test('parseRelease accepts release URLs and owner/repo@tag', () => {
 	assert.deepEqual(parseRelease('https://github.com/shoaibphysics/blast-freezing-black-hole/releases/tag/v1.0.1'), {
@@ -19,12 +19,6 @@ test('parseRelease rejects anything that is not one release', () => {
 	}
 });
 
-test('isRelationship', () => {
-	assert.ok(isRelationship('author'));
-	assert.ok(!isRelationship('reviewer'));
-	assert.ok(!isRelationship(undefined));
-});
-
 test('buildIssue writes the marker and a parseable JSON block', () => {
 	const r = parseRelease('owner/repo@v2.0.0')!;
 	const { title, body } = buildIssue(r, 'someone', 'on-behalf');
@@ -38,4 +32,12 @@ test('corsHeaders only allows the site origin', () => {
 	assert.equal(corsHeaders('https://site.example', 'https://site.example')['Access-Control-Allow-Origin'], 'https://site.example');
 	assert.equal(corsHeaders('https://evil.example', 'https://site.example')['Access-Control-Allow-Origin'], undefined);
 	assert.equal(corsHeaders(null, 'https://site.example')['Access-Control-Allow-Origin'], undefined);
+});
+
+test('parseRepo accepts owner/repo and GitHub URLs, with an optional tag', () => {
+	assert.deepEqual(parseRepo('valbert4/two-fold-transversal'), { owner: 'valbert4', repo: 'two-fold-transversal', tag: undefined });
+	assert.deepEqual(parseRepo('https://github.com/a/b.git/'), { owner: 'a', repo: 'b', tag: undefined });
+	assert.equal(parseRepo('https://github.com/a/b/releases/tag/v1.0.0-arxiv')?.tag, 'v1.0.0-arxiv');
+	assert.equal(parseRepo('https://github.com/a/b/tree/v2')?.tag, 'v2');
+	for (const bad of ['', 'a', 'a/', 'https://example.com/a/b', 'a/b/c']) assert.equal(parseRepo(bad), null, bad);
 });

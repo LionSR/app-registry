@@ -5,13 +5,13 @@ import PaperRow from '../components/PaperRow.astro';
 import Video from '../components/Video.astro';
 import { url } from '../lib/url';
 import { allPapers, firstListed } from '../lib/papers';
+import { formatMonth } from '../lib/format';
 
 const papers = await allPapers();
 // Group by the month a paper was first listed, newest first (arXiv-style listing).
-const monthFmt = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', timeZone: 'UTC' });
 const groups = new Map<string, typeof papers>();
 for (const p of papers) {
-	const month = monthFmt.format(new Date(`${firstListed(p)}T00:00:00Z`));
+	const month = formatMonth(firstListed(p));
 	groups.set(month, [...(groups.get(month) ?? []), p]);
 }
 ---
@@ -43,7 +43,7 @@ for (const p of papers) {
 		<h2 class="listing">New papers</h2>
 		<div class="bar">
 			<p class="count"><span id="shown">{papers.length}</span> of {papers.length} papers, newest first</p>
-			<input id="q" type="search" placeholder="Search titles, authors, tags" aria-label="Search papers" autocomplete="off" />
+			<input id="q" class="field" type="search" placeholder="Search titles, authors, tags" aria-label="Search papers" autocomplete="off" />
 		</div>
 
 		{
@@ -93,23 +93,13 @@ for (const p of papers) {
 		padding-bottom: 2rem;
 		border-bottom: 1px solid var(--sl-color-hairline);
 	}
-	.lede { margin: 0; font-size: var(--sl-text-lg); line-height: 1.55; color: var(--sl-color-gray-1); max-width: 34rem; }
+	.lede { margin: 0; max-width: 34rem; }
 	.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 	@media (max-width: 50rem) { .intro { grid-template-columns: 1fr; } }
 	.listing { margin-top: 2rem; font-size: var(--sl-text-2xl); }
 	.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; }
 	.count { margin: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
-	#q {
-		flex: 0 1 20rem;
-		padding: 0.45rem 0.7rem;
-		font: inherit;
-		font-size: var(--sl-text-sm);
-		color: var(--sl-color-white);
-		background: var(--sl-color-bg);
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.4rem;
-	}
-	#q:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 1px; }
+	#q { flex: 0 1 20rem; font-size: var(--sl-text-sm); }
 	.month h2 { font-size: var(--sl-text-base); color: var(--sl-color-gray-3); font-weight: 600; margin-top: 1.75rem; }
 	.month ul { list-style: none; padding: 0; margin-top: 0.25rem; }
 	#empty { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }

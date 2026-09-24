@@ -1,4 +1,4 @@
-# Offline tests of submission.py against real GitHub releases. Run: python registry/scripts/test_submission.py
+# Offline tests of the review bot (submission.py) against real GitHub releases.
 import datetime as dt, json, shutil, sys
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
 import registry, submission

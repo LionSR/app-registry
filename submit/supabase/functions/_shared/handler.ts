@@ -13,45 +13,34 @@ import process from 'node:process';
 import { createAppAuth } from '@octokit/auth-app';
 import { exchangeWebFlowCode } from '@octokit/oauth-methods';
 import { request as github } from '@octokit/request';
-import { buildIssue, corsHeaders, isRelationship, parseRelease, RELATIONSHIPS } from './submission.ts';
+import { Bearer, Env, SubmitBody } from './schemas.ts';
+import { buildIssue, corsHeaders } from './submission.ts';
 
-function need(name: string): string {
-	const value = process.env[name];
-	if (!value) throw new Error(`${name} is not set`);
-	return value;
-}
+type Handler = (request: Request, env: Env) => Promise<Response> | Response;
 
-const config = () => ({
-	appId: need('GITHUB_APP_ID'),
-	// Accept keys stored with literal "\n" as well as real newlines.
-	privateKey: need('GITHUB_APP_PRIVATE_KEY').replace(/\\n/g, '\n'),
-	clientId: need('GITHUB_APP_CLIENT_ID'),
-	clientSecret: need('GITHUB_APP_CLIENT_SECRET'),
-	registryRepo: need('REGISTRY_REPO'), // e.g. LionSR/app-registry
-	siteUrl: need('SITE_URL').replace(/\/$/, ''), // e.g. https://lionsr.github.io/app-registry
-});
+const ROUTES: { method: string; path: string; handler: Handler }[] = [
+	{ method: 'GET', path: '/auth/callback', handler: callback },
+	{ method: 'OPTIONS', path: '/submit', handler: preflight },
+	{ method: 'POST', path: '/submit', handler: submit },
+];
 
 export async function handle(request: Request): Promise<Response> {
 	const path = new URL(request.url).pathname.replace(/\/$/, '');
-	if (path.endsWith('/auth/callback') && request.method === 'GET') return callback(request);
-	if (path.endsWith('/submit')) {
-		if (request.method === 'OPTIONS') return preflight(request);
-		if (request.method === 'POST') return submit(request);
-	}
-	return Response.json({ error: 'Not found. Use POST /submit.' }, { status: 404 });
+	const route = ROUTES.find((r) => r.method === request.method && path.endsWith(r.path));
+	if (!route) return Response.json({ error: 'Not found. Use POST /submit.' }, { status: 404 });
+	return route.handler(request, Env.parse(process.env));
 }
 
-async function callback(request: Request): Promise<Response> {
-	const { clientId, clientSecret, siteUrl } = config();
+async function callback(request: Request, env: Env): Promise<Response> {
 	const url = new URL(request.url);
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state') ?? '';
 	const back = (fragment: Record<string, string>) =>
-		new Response(null, { status: 302, headers: { Location: `${siteUrl}/submit/#${new URLSearchParams({ ...fragment, state })}` } });
+		new Response(null, { status: 302, headers: { Location: `${env.SITE_URL}/submit/#${new URLSearchParams({ ...fragment, state })}` } });
 
 	if (!code) return back({ error: url.searchParams.get('error_description') ?? 'Sign-in was cancelled.' });
 	try {
-		const { authentication } = await exchangeWebFlowCode({ clientType: 'github-app', clientId, clientSecret, code });
+		const { authentication } = await exchangeWebFlowCode({ clientType: 'github-app', clientId: env.GITHUB_APP_CLIENT_ID, clientSecret: env.GITHUB_APP_CLIENT_SECRET, code });
 		return back({ token: authentication.token });
 	} catch (err) {
 		// GitHub's reason (e.g. "The client_id and/or client_secret passed are incorrect.") is safe to show.
@@ -61,54 +50,40 @@ async function callback(request: Request): Promise<Response> {
 	}
 }
 
-function preflight(request: Request): Response {
-	return new Response(null, { status: 204, headers: corsHeaders(request.headers.get('Origin'), new URL(config().siteUrl).origin) });
+function preflight(request: Request, env: Env): Response {
+	return new Response(null, { status: 204, headers: corsHeaders(request.headers.get('Origin'), new URL(env.SITE_URL).origin) });
 }
 
-async function submit(request: Request): Promise<Response> {
-	const cfg = config();
-	const cors = corsHeaders(request.headers.get('Origin'), new URL(cfg.siteUrl).origin);
+async function submit(request: Request, env: Env): Promise<Response> {
+	const cors = corsHeaders(request.headers.get('Origin'), new URL(env.SITE_URL).origin);
 	const reply = (status: number, body: Record<string, unknown>) => Response.json(body, { status, headers: cors });
 
-	const token = request.headers.get('Authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1];
-	if (!token) return reply(401, { error: 'Sign in with GitHub first. Agents: send Authorization: Bearer $(gh auth token).' });
-
-	let input: { release_url?: unknown; relationship?: unknown };
-	try {
-		input = await request.json();
-	} catch {
-		return reply(400, { error: 'Send a JSON body: {"release_url": "...", "relationship": "author"}.' });
+	const token = Bearer.safeParse(request.headers.get('Authorization') ?? undefined);
+	if (!token.success) return reply(401, { error: token.error.issues[0].message });
+	const body = SubmitBody.safeParse(await request.json().catch(() => undefined));
+	if (!body.success) {
+		const issue = body.error.issues[0];
+		return reply(400, { error: issue.path.length ? issue.message : 'Send a JSON body: {"release_url": "...", "relationship": "author"}.' });
 	}
-	const release = typeof input.release_url === 'string' ? parseRelease(input.release_url) : null;
-	if (!release) {
-		return reply(400, { error: 'release_url must be a GitHub release, like https://github.com/owner/repo/releases/tag/v1.0.0 or owner/repo@v1.0.0.' });
-	}
-	if (!isRelationship(input.relationship)) {
-		return reply(400, { error: `relationship must be one of: ${RELATIONSHIPS.join(', ')}.` });
-	}
+	const { release_url: release, relationship } = body.data;
 
 	let submitter: string;
 	try {
-		const { data } = await github('GET /user', { headers: { authorization: `token ${token}` } });
-		submitter = data.login;
+		({ data: { login: submitter } } = await github('GET /user', { headers: { authorization: `token ${token.data}` } }));
 	} catch {
 		return reply(401, { error: 'GitHub did not accept this token. Sign in again.' });
 	}
 
-	const [owner, repo] = cfg.registryRepo.split('/');
+	const [owner, repo] = env.REGISTRY_REPO.split('/');
 	try {
-		const auth = createAppAuth({ appId: cfg.appId, privateKey: cfg.privateKey });
+		const auth = createAppAuth({ appId: env.GITHUB_APP_ID, privateKey: env.GITHUB_APP_PRIVATE_KEY });
 		const app = await auth({ type: 'app' });
-		const { data: installation } = await github('GET /repos/{owner}/{repo}/installation', {
-			owner,
-			repo,
-			headers: { authorization: `bearer ${app.token}` },
-		});
+		const { data: installation } = await github('GET /repos/{owner}/{repo}/installation', { owner, repo, headers: { authorization: `bearer ${app.token}` } });
 		const { token: botToken } = await auth({ type: 'installation', installationId: installation.id });
 		const { data: issue } = await github('POST /repos/{owner}/{repo}/issues', {
 			owner,
 			repo,
-			...buildIssue(release, submitter, input.relationship),
+			...buildIssue(release, submitter, relationship),
 			headers: { authorization: `token ${botToken}` },
 		});
 		return reply(201, { issue_url: issue.html_url, issue_number: issue.number, submitter });

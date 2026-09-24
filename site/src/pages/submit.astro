@@ -8,6 +8,7 @@ import { agentCommand } from '../lib/agent-command';
 const api = import.meta.env.PUBLIC_SUBMIT_API ?? '';
 const clientId = import.meta.env.PUBLIC_GITHUB_APP_CLIENT_ID ?? '';
 const configured = Boolean(api && clientId);
+// Filled in with the chosen release by the page script.
 const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/TAG');
 ---
 
@@ -24,7 +25,6 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 			publication, and an editor lists it with a permanent ID. Your repository is not changed.
 		</p>
 
-
 		<form id="form" novalidate>
 			<div class="account">
 				<span id="who">Sign in with GitHub so the registry knows who is submitting.</span>
@@ -33,13 +33,13 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 			</div>
 
 			<label for="repo">Repository</label>
-			<input id="repo" name="repo" required autocomplete="off" list="repo-suggestions" placeholder="owner/paper-repo" aria-describedby="repo-hint" />
+			<input id="repo" class="field" name="repo" required autocomplete="off" list="repo-suggestions" placeholder="owner/paper-repo" />
 			<datalist id="repo-suggestions"></datalist>
 			<p class="hint">A public GitHub repository. Type <code>owner/</code> to choose from its repositories, or paste a URL.</p>
 
 			<label for="tag">Release</label>
-			<select id="tag" name="tag" disabled aria-describedby="tag-hint"><option>Choose a repository first</option></select>
-			<p id="tag-hint" class="hint">Only releases with an <code>APP_PUBLICATION.json</code> file can be submitted.</p>
+			<select id="tag" class="field" name="tag" disabled><option>Choose a repository first</option></select>
+			<p class="hint">Only releases with an <code>APP_PUBLICATION.json</code> file can be submitted.</p>
 
 			<p id="preview" class="preview" hidden></p>
 
@@ -74,298 +74,11 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 </StarlightPage>
 
 <script>
-	import { parseRelease } from '../../../submit/supabase/functions/_shared/submission.ts';
-	import { agentCommand } from '../lib/agent-command';
-
-	const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
-	const root = document.querySelector<HTMLElement>('.submit')!;
-	const api = root.dataset.api!;
-	const clientId = root.dataset.clientId!;
-	const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-	const form = $<HTMLFormElement>('form');
-	const preview = $('preview');
-	const send = $<HTMLButtonElement>('send');
-	const who = $('who');
-	const TOKEN = 'app-registry-token';
-	const STATE = 'app-registry-oauth-state';
-
-	const store = {
-		get: (k: string) => { try { return sessionStorage.getItem(k); } catch { return null; } },
-		set: (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch {} },
-		del: (k: string) => { try { sessionStorage.removeItem(k); } catch {} },
-	};
-
-	// ---- One status box above the Submit button explains every state. ----
-	type Part = string | { text: string; href: string } | { text: string; onClick: () => void };
-	type Tone = 'info' | 'ok' | 'warn' | 'error';
-	const statusBox = $('status');
-	function setStatus(tone: Tone, ...parts: Part[]) {
-		statusBox.dataset.tone = tone;
-		statusBox.replaceChildren(
-			...parts.map((p) => {
-				if (typeof p === 'string') return document.createTextNode(p);
-				if ('href' in p) return Object.assign(document.createElement('a'), { href: p.href, textContent: p.text });
-				const btn = Object.assign(document.createElement('button'), { type: 'button', className: 'link', textContent: p.text });
-				btn.addEventListener('click', p.onClick);
-				return btn;
-			}),
-		);
-	}
-
-	// What the page knows; render() turns it into the status box and the button state.
-	const state = {
-		configured: Boolean(api && clientId),
-		login: '',
-		signinError: '',
-		repo: null as null | { owner: string; repo: string; tag?: string },
-		lookup: 'idle' as 'idle' | 'loading' | 'not-found' | 'rate-limited' | 'failed' | 'done',
-		eligible: 0,
-		forkOf: '' as string,
-		tag: '',
-		listedAs: '' as string, // entry ID if this repo is in the registry
-		tagListed: false,
-		agentsMd: 'unknown' as 'unknown' | 'found' | 'missing',
-		sending: false,
-		sent: null as null | { url: string; number: number },
-		sendError: '',
-	};
-
-	function render() {
-		const st = state;
-		const name = st.repo ? `${st.repo.owner}/${st.repo.repo}` : '';
-		let ready = false;
-		if (!st.configured) setStatus('warn', 'Submissions are not configured on this build of the site.');
-		else if (st.sent) setStatus('ok', 'Submitted to the registry. Follow the checks and the review in ', { text: `issue #${st.sent.number}`, href: st.sent.url }, '. You are mentioned there and can reply.');
-		else if (st.sending) setStatus('info', 'Submitting…');
-		else if (st.signinError) setStatus('error', st.signinError);
-		else if (!st.repo) setStatus('info', st.login ? 'Choose the repository of your paper.' : 'Sign in with GitHub, then choose the repository of your paper.');
-		else if (st.lookup === 'loading') setStatus('info', `Looking up ${name}…`);
-		else if (st.lookup === 'not-found') setStatus('error', `${name} was not found. The repository must exist and be public. Check the spelling, or paste its GitHub URL.`);
-		else if (st.lookup === 'rate-limited') setStatus('error', 'GitHub is limiting requests from this browser. ', ...(st.login ? ['Wait a minute and try again.'] : ['Sign in with GitHub to raise the limit, or wait a minute.']));
-		else if (st.lookup === 'failed') setStatus('error', `GitHub could not be reached for ${name}. Try again in a minute.`);
-		else if (!st.eligible && st.forkOf)
-			setStatus('warn', `${name} is a fork of ${st.forkOf} and has no release to submit. The publication is usually in the original repository. `, {
-				text: `Use ${st.forkOf}`,
-				onClick: () => {
-					repoInput.value = st.forkOf;
-					loadReleases();
-				},
-			});
-		else if (!st.eligible)
-			setStatus('warn', `${name} has no release with an APP_PUBLICATION.json file, so there is nothing to submit yet. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '. The publishing skill creates the release and the file.');
-		else if (st.tagListed) setStatus('info', `This release is already in the registry as ${st.listedAs}. There is nothing to submit. `, { text: 'View the paper', href: `${BASE}/papers/${st.listedAs}/` }, '.');
-		else if (!st.login) setStatus('info', 'Sign in with GitHub to submit this release.');
-		else {
-			ready = true;
-			const what = st.listedAs ? `a new version of ${st.listedAs}` : 'a new paper';
-			// A failed submission can be retried: show the error and keep the button enabled.
-			if (st.sendError) return setStatus('error', st.sendError), void (send.disabled = st.sending);
-			if (st.agentsMd === 'missing') setStatus('warn', `Ready to submit ${name}@${st.tag} as ${what}. No AGENTS.md was found at this tag, so the checks will likely fail.`);
-			else setStatus('ok', `Ready to submit ${name}@${st.tag} as ${what}.`);
-		}
-		send.disabled = !ready || st.sending;
-	}
-
-	// ---- Sign-in ----
-	const back = new URLSearchParams(location.hash.slice(1));
-	if (back.has('state')) {
-		history.replaceState(null, '', location.pathname);
-		if (back.get('state') !== store.get(STATE)) state.signinError = 'Sign-in could not be verified. Sign in again from this page.';
-		else if (back.get('error')) state.signinError = back.get('error')!;
-		else if (back.get('token')) store.set(TOKEN, back.get('token')!);
-		store.del(STATE);
-	}
-
-	async function loadAccount() {
-		const token = store.get(TOKEN);
-		if (!token) return render();
-		const res = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
-		if (!res?.ok) {
-			store.del(TOKEN);
-			state.signinError = 'Your GitHub sign-in has expired. Sign in again.';
-			return render();
-		}
-		state.login = (await res.json()).login;
-		state.signinError = '';
-		who.textContent = `Signed in as @${state.login}`;
-		$('signin').hidden = true;
-		$('signout').hidden = false;
-		suggestRepos(state.login);
-		render();
-	}
-
-	$('signin').addEventListener('click', () => {
-		const st = crypto.randomUUID();
-		store.set(STATE, st);
-		const q = new URLSearchParams({ client_id: clientId, redirect_uri: `${api}/auth/callback`, state: st });
-		location.href = `https://github.com/login/oauth/authorize?${q}`;
-	});
-	$('signout').addEventListener('click', () => {
-		store.del(TOKEN);
-		location.reload();
-	});
-
-	// ---- Repository and release pickers (public GitHub data; the token only raises rate limits) ----
-	const repoInput = $<HTMLInputElement>('repo');
-	const suggestions = $('repo-suggestions');
-	const tagSelect = $<HTMLSelectElement>('tag');
-	const gh = (path: string) => {
-		const token = store.get(TOKEN);
-		return fetch(`https://api.github.com${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-	};
-	let listed: { id: string; repo_url: string; versions: { tag: string }[] }[] = [];
-	const listedReady = fetch(`${BASE}/papers/index.json`).then((r) => r.json()).then((d) => (listed = d)).catch(() => {});
-
-	const suggested = new Set<string>();
-	async function suggestRepos(owner: string) {
-		if (suggested.has(owner.toLowerCase())) return;
-		suggested.add(owner.toLowerCase());
-		const res = await gh(`/users/${encodeURIComponent(owner)}/repos?per_page=100&sort=updated&type=owner`).catch(() => null);
-		if (!res?.ok) return;
-		for (const r of await res.json()) {
-			if (r.private || r.fork) continue;
-			suggestions.append(Object.assign(document.createElement('option'), { value: r.full_name }));
-		}
-	}
-
-	/** "owner/repo", a repo URL, or a release URL -> { owner, repo, tag? } */
-	function readRepo(text: string) {
-		const t = text.trim().replace(/\.git$/, '').replace(/\/$/, '');
-		const m = t.match(/^(?:https:\/\/github\.com\/)?([\w.-]+)\/([\w.-]+)(?:\/(?:releases\/tag|tree)\/([^\s?#]+))?$/);
-		return m ? { owner: m[1], repo: m[2], tag: m[3] ? decodeURIComponent(m[3]) : undefined } : null;
-	}
-
-	let current = '';
-	async function loadReleases() {
-		const text = repoInput.value.trim();
-		const owner = text.match(/^(?:https:\/\/github\.com\/)?([\w.-]+)\/$/)?.[1];
-		if (owner) suggestRepos(owner);
-		const r = readRepo(text);
-		Object.assign(state, { repo: r, sent: null, sendError: '', eligible: 0, forkOf: '', tag: '', listedAs: '', tagListed: false, agentsMd: 'unknown' });
-		tagSelect.disabled = true;
-		preview.hidden = true;
-		if (!r) {
-			current = '';
-			tagSelect.innerHTML = '<option>Choose a repository first</option>';
-			state.lookup = 'idle';
-			return render();
-		}
-		const key = `${r.owner}/${r.repo}`.toLowerCase();
-		if (key === current && state.lookup !== 'idle') return render();
-		current = key;
-		state.lookup = 'loading';
-		render();
-		const res = await gh(`/repos/${r.owner}/${r.repo}/releases?per_page=100`).catch(() => null);
-		if (current !== key) return;
-		if (!res || !res.ok) {
-			state.lookup = !res ? 'failed' : res.status === 404 ? 'not-found' : res.status === 403 || res.status === 429 ? 'rate-limited' : 'failed';
-			tagSelect.innerHTML = '<option>No releases</option>';
-			return render();
-		}
-		const releases: { tag_name: string; draft: boolean; assets: { name: string }[] }[] = await res.json();
-		const eligible = releases.filter((x) => !x.draft && x.assets.some((a) => a.name === 'APP_PUBLICATION.json'));
-		state.eligible = eligible.length;
-		tagSelect.innerHTML = '';
-		for (const x of releases.filter((x) => !x.draft)) {
-			const ok = eligible.includes(x);
-			tagSelect.append(Object.assign(document.createElement('option'), { value: x.tag_name, textContent: ok ? x.tag_name : `${x.tag_name} (no APP_PUBLICATION.json)`, disabled: !ok }));
-		}
-		if (!eligible.length) {
-			tagSelect.innerHTML = `<option>${releases.length ? 'No release can be submitted yet' : 'No releases yet'}</option>`;
-			const meta = await gh(`/repos/${r.owner}/${r.repo}`).then((x) => (x.ok ? x.json() : null)).catch(() => null);
-			if (current !== key) return;
-			state.forkOf = meta?.fork ? (meta.parent?.full_name ?? '') : '';
-			state.lookup = 'done';
-			return render();
-		}
-		state.lookup = 'done';
-		tagSelect.disabled = false;
-		tagSelect.value = r.tag && eligible.some((x) => x.tag_name === r.tag) ? r.tag : eligible[0].tag_name;
-		selectRelease();
-	}
-
-	async function selectRelease() {
-		const r = state.repo;
-		const tag = tagSelect.value;
-		if (!r || !tag) return;
-		await listedReady;
-		const entry = listed.find((e) => e.repo_url.toLowerCase() === `https://github.com/${r.owner}/${r.repo}`.toLowerCase());
-		queueMicrotask(showAgentCmd);
-		Object.assign(state, { tag, listedAs: entry?.id ?? '', tagListed: Boolean(entry?.versions.some((v) => v.tag === tag)), agentsMd: 'unknown', sent: null, sendError: '' });
-		render();
-		preview.hidden = false;
-		preview.textContent = `Reading AGENTS.md at ${tag}…`;
-		const res = await fetch(`https://raw.githubusercontent.com/${r.owner}/${r.repo}/${encodeURIComponent(tag)}/AGENTS.md`).catch(() => null);
-		if (tagSelect.value !== tag || state.repo !== r) return;
-		if (!res?.ok) {
-			state.agentsMd = 'missing';
-			preview.hidden = true;
-			return render();
-		}
-		state.agentsMd = 'found';
-		const text = await res.text();
-		const title = text.match(/^title:\s*["']?(.*?)["']?\s*$/m)?.[1];
-		const names = [...text.matchAll(/^\s*-\s+name:\s*["']?(.*?)["']?\s*$/gm)].map((m) => m[1]);
-		preview.textContent = title ? `${title}${names.length ? `, by ${names.join(', ')}` : ''}` : `Found AGENTS.md at ${tag}.`;
-		render();
-	}
-
-	const agentCmdEl = $('agent-cmd');
-	const showAgentCmd = () => {
-		const r = state.repo && state.tag ? parseRelease(`${state.repo.owner}/${state.repo.repo}@${state.tag}`) : null;
-		agentCmdEl.textContent = agentCommand(api, r?.url ?? 'https://github.com/OWNER/REPO/releases/tag/TAG');
-	};
-	$('copy-cmd').addEventListener('click', async (e) => {
-		await navigator.clipboard.writeText(agentCmdEl.textContent ?? '');
-		(e.target as HTMLButtonElement).textContent = 'Copied';
-		setTimeout(() => ((e.target as HTMLButtonElement).textContent = 'Copy command'), 1500);
-	});
-	tagSelect.addEventListener('change', showAgentCmd);
-	repoInput.addEventListener('input', showAgentCmd);
-
-	repoInput.addEventListener('input', loadReleases);
-	tagSelect.addEventListener('change', selectRelease);
-
-	// ---- Submit ----
-	form.addEventListener('submit', async (e) => {
-		e.preventDefault();
-		const r = state.repo && state.tag ? parseRelease(`${state.repo.owner}/${state.repo.repo}@${state.tag}`) : null;
-		const token = store.get(TOKEN);
-		if (!r || !token) return;
-		Object.assign(state, { sending: true, sendError: '' });
-		render();
-		try {
-			const res = await fetch(`${api}/submit`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-				body: JSON.stringify({ release_url: r.url, relationship: new FormData(form).get('relationship') }),
-			});
-			const data = await res.json().catch(() => ({}));
-			if (res.status === 401) {
-				store.del(TOKEN);
-				state.login = '';
-				who.textContent = 'Sign in with GitHub so the registry knows who is submitting.';
-				$('signin').hidden = false;
-				$('signout').hidden = true;
-				state.signinError = 'Your GitHub sign-in has expired. Sign in again, then submit.';
-				return;
-			}
-			if (!res.ok) throw new Error(data.error ?? `The registry could not accept the submission (error ${res.status}). Try again in a minute.`);
-			state.sent = { url: data.issue_url, number: data.issue_number };
-		} catch (err) {
-			state.sendError = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'The registry could not be reached. Check your connection and try again.';
-		} finally {
-			state.sending = false;
-			render();
-		}
-	});
-
-	loadAccount();
+	import '../scripts/submit.ts';
 </script>
 
 <style>
 	.submit { max-width: 40rem; }
-	.lede { font-size: var(--sl-text-lg); color: var(--sl-color-gray-1); }
 	.agents { margin-top: 2rem; }
 	.agents summary { cursor: pointer; font-weight: 600; }
 	.agents pre { white-space: pre-wrap; word-break: break-all; font-size: var(--sl-text-xs); padding: 0.75rem; border-radius: 0.35rem; background: var(--sl-color-gray-6); }
@@ -374,9 +87,7 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 	label, legend { font-weight: 600; }
 	fieldset { border: 0; padding: 0; margin: 0.75rem 0 0.5rem; display: grid; gap: 0.35rem; }
 	fieldset label { font-weight: 400; display: flex; gap: 0.5rem; align-items: center; margin: 0; }
-	.preview { margin: 0.25rem 0 0; padding: 0.6rem 0.8rem; font-family: var(--app-serif); font-size: var(--sl-text-lg); background: var(--sl-color-gray-7, var(--sl-color-gray-6)); border-radius: 0.35rem; }
-	select, input[type='text'], #repo,
-	input[type='url'] { font: inherit; padding: 0.55rem 0.7rem; color: var(--sl-color-white); background: var(--sl-color-bg); border: 1px solid var(--sl-color-gray-4); border-radius: 0.35rem; }
+	.preview { margin: 0.25rem 0 0; padding: 0.6rem 0.8rem; font-family: var(--app-serif); font-size: var(--sl-text-lg); background: var(--sl-color-gray-6); border-radius: 0.35rem; }
 	.status { margin-top: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 0.4rem; border-inline-start: 3px solid; font-size: var(--sl-text-sm); line-height: 1.5; }
 	.status:empty { display: none; }
 	.status[data-tone='info'] { border-color: var(--sl-color-gray-4); background: var(--sl-color-gray-6); }
@@ -389,5 +100,5 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 	button.secondary { background: transparent; color: var(--sl-color-white); border: 1px solid var(--sl-color-gray-4); }
 	button.link { background: none; padding: 0; color: var(--sl-color-accent); font-weight: 400; text-decoration: underline; }
 	button:disabled { opacity: 0.45; cursor: not-allowed; }
-	button:focus-visible, input:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
+	button:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
 </style>
