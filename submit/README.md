@@ -20,6 +20,7 @@ npm test        # unit tests plus the handler with GitHub faked, under Node
    - Callback URL: `https://<project-ref>.supabase.co/functions/v1/registry/auth/callback`
    - Webhook: off
    - Repository permissions: Issues read and write. Nothing else.
+   - Where can it be installed: **Any account** (a public App). Authors sign in through it, and GitHub answers 404 to anyone but the owner for a private App. Its permissions still apply only where it is installed.
    - Install it on the registry repository only.
 2. **Supabase project**: any project works; only Edge Functions are used. From this directory:
 
