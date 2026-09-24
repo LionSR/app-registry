@@ -37,11 +37,19 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 				<span id="who">Sign in with GitHub so the registry knows who is submitting.</span>
 				<button type="button" id="signin" class="secondary" disabled={!configured}>Sign in with GitHub</button>
 				<button type="button" id="signout" class="link" hidden>Sign out</button>
+				<p id="signin-error" class="error" role="alert" hidden></p>
 			</div>
 
-			<label for="release">Release URL</label>
-			<input id="release" name="release" type="url" required placeholder="https://github.com/owner/repo/releases/tag/v1.0.0" autocomplete="off" />
-			<p id="preview" class="hint">Paste the link to the GitHub release that carries your APP_PUBLICATION.json.</p>
+			<label for="repo">Repository</label>
+			<input id="repo" name="repo" required autocomplete="off" list="repo-suggestions" placeholder="owner/paper-repo" aria-describedby="repo-hint" />
+			<datalist id="repo-suggestions"></datalist>
+			<p id="repo-hint" class="hint">A public GitHub repository. Type <code>owner/</code> to choose from its repositories, or paste a URL.</p>
+
+			<label for="tag">Release</label>
+			<select id="tag" name="tag" disabled aria-describedby="tag-hint"><option>Choose a repository first</option></select>
+			<p id="tag-hint" class="hint">Only releases with an <code>APP_PUBLICATION.json</code> file can be submitted. A tag names one fixed version of the paper.</p>
+
+			<p id="preview" class="preview" hidden></p>
 
 			<fieldset>
 				<legend>Your relationship to the paper</legend>
@@ -75,7 +83,6 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 	const clientId = root.dataset.clientId!;
 	const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 	const form = $<HTMLFormElement>('form');
-	const release = $<HTMLInputElement>('release');
 	const preview = $('preview');
 	const send = $<HTMLButtonElement>('send');
 	const result = $('result');
@@ -90,11 +97,16 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 	};
 
 	// Back from GitHub sign-in: the callback puts the token (or an error) in the fragment.
+	const signinError = $('signin-error');
+	const showSigninError = (msg: string) => {
+		signinError.textContent = msg;
+		signinError.hidden = false;
+	};
 	const back = new URLSearchParams(location.hash.slice(1));
 	if (back.has('state')) {
 		history.replaceState(null, '', location.pathname);
-		if (back.get('state') !== store.get(STATE)) result.textContent = 'Sign-in could not be verified. Sign in again.';
-		else if (back.get('error')) result.textContent = back.get('error')!;
+		if (back.get('state') !== store.get(STATE)) showSigninError('Sign-in could not be verified. Sign in again from this tab.');
+		else if (back.get('error')) showSigninError(back.get('error')!);
 		else if (back.get('token')) store.set(TOKEN, back.get('token')!);
 		store.del(STATE);
 	}
@@ -104,12 +116,16 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 		const token = store.get(TOKEN);
 		if (!token) return;
 		const res = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${token}` } });
-		if (!res.ok) return store.del(TOKEN);
+		if (!res.ok) {
+			store.del(TOKEN);
+			return showSigninError(`GitHub did not accept the sign-in (${res.status}). Sign in again.`);
+		}
 		login = (await res.json()).login;
 		who.textContent = `Signed in as @${login}`;
 		$('signin').hidden = true;
 		$('signout').hidden = false;
-		update();
+		suggestRepos(login);
+		if (tagSelect.value && !tagSelect.disabled) selectRelease();
 	}
 
 	$('signin').addEventListener('click', () => {
@@ -123,36 +139,121 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 		location.reload();
 	});
 
-	// Preview what the release says about itself. The real checks run after submission.
-	let previewFor = '';
-	async function update() {
-		const r = parseRelease(release.value);
-		send.disabled = !(r && login);
+	// Repository and release pickers. Public GitHub data only; the signed-in token just raises rate limits.
+	const repoInput = $<HTMLInputElement>('repo');
+	const repoHint = $('repo-hint');
+	const suggestions = $('repo-suggestions');
+	const tagSelect = $<HTMLSelectElement>('tag');
+	const tagHint = $('tag-hint');
+	const gh = (path: string) => {
+		const token = store.get(TOKEN);
+		return fetch(`https://api.github.com${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+	};
+	let listed: { id: string; repo_url: string; versions: { tag: string }[] }[] = [];
+	fetch('/papers/index.json').then((r) => r.json()).then((d) => (listed = d)).catch(() => {});
+
+	const suggested = new Set<string>();
+	async function suggestRepos(owner: string) {
+		if (suggested.has(owner.toLowerCase())) return;
+		suggested.add(owner.toLowerCase());
+		const res = await gh(`/users/${encodeURIComponent(owner)}/repos?per_page=100&sort=updated&type=owner`);
+		if (!res.ok) return;
+		for (const r of await res.json()) {
+			if (r.private || r.fork) continue;
+			suggestions.append(Object.assign(document.createElement('option'), { value: r.full_name }));
+		}
+	}
+
+	/** "owner/repo", a repo URL, or a release URL -> { owner, repo, tag? } */
+	function readRepo(text: string) {
+		const t = text.trim().replace(/\.git$/, '').replace(/\/$/, '');
+		const m = t.match(/^(?:https:\/\/github\.com\/)?([\w.-]+)\/([\w.-]+)(?:\/(?:releases\/tag|tree)\/([^\s?#]+))?$/);
+		return m ? { owner: m[1], repo: m[2], tag: m[3] ? decodeURIComponent(m[3]) : undefined } : null;
+	}
+
+	let current = '';
+	async function loadReleases() {
+		const text = repoInput.value.trim();
+		const owner = text.match(/^(?:https:\/\/github\.com\/)?([\w.-]+)\/$/)?.[1];
+		if (owner) suggestRepos(owner);
+		const r = readRepo(text);
+		tagSelect.disabled = true;
+		send.disabled = true;
+		preview.hidden = true;
 		if (!r) {
-			preview.textContent = release.value.trim()
-				? 'Use the release link, like https://github.com/owner/repo/releases/tag/v1.0.0.'
-				: 'Paste the link to the GitHub release that carries your APP_PUBLICATION.json.';
+			current = '';
+			tagSelect.innerHTML = '<option>Choose a repository first</option>';
 			return;
 		}
-		if (previewFor === r.url) return;
-		previewFor = r.url;
-		preview.textContent = `Reading AGENTS.md at ${r.tag}…`;
-		const res = await fetch(`https://raw.githubusercontent.com/${r.owner}/${r.repo}/${encodeURIComponent(r.tag)}/AGENTS.md`);
-		if (previewFor !== r.url) return;
+		const key = `${r.owner}/${r.repo}`.toLowerCase();
+		if (key === current) return;
+		current = key;
+		repoHint.textContent = `Looking up ${r.owner}/${r.repo}…`;
+		const res = await gh(`/repos/${r.owner}/${r.repo}/releases?per_page=100`);
+		if (current !== key) return;
 		if (!res.ok) {
-			preview.textContent = `No AGENTS.md found in ${r.owner}/${r.repo} at ${r.tag}. Check the link; the checks will fail without it.`;
+			repoHint.textContent = res.status === 404 ? `${r.owner}/${r.repo} was not found. It must be a public repository.` : `GitHub returned ${res.status}. Try again in a minute.`;
+			tagSelect.innerHTML = '<option>No releases</option>';
+			return;
+		}
+		const releases: { tag_name: string; name: string; draft: boolean; assets: { name: string }[] }[] = await res.json();
+		const eligible = releases.filter((x) => !x.draft && x.assets.some((a) => a.name === 'APP_PUBLICATION.json'));
+		repoHint.textContent = `${r.owner}/${r.repo}: ${releases.length} release${releases.length === 1 ? '' : 's'}, ${eligible.length} with APP_PUBLICATION.json.`;
+		tagSelect.innerHTML = '';
+		for (const x of releases.filter((x) => !x.draft)) {
+			const ok = eligible.includes(x);
+			const opt = Object.assign(document.createElement('option'), {
+				value: x.tag_name,
+				textContent: ok ? x.tag_name : `${x.tag_name} (no APP_PUBLICATION.json)`,
+				disabled: !ok,
+			});
+			tagSelect.append(opt);
+		}
+		if (!eligible.length) {
+			tagSelect.innerHTML = '<option>No release can be submitted yet</option>';
+			tagHint.innerHTML = 'Publish the paper first: the <a href="/publish/">publishing skill</a> creates the release and its APP_PUBLICATION.json.';
+			return;
+		}
+		tagSelect.disabled = false;
+		tagSelect.value = r.tag && eligible.some((x) => x.tag_name === r.tag) ? r.tag : eligible[0].tag_name;
+		selectRelease();
+	}
+
+	async function selectRelease() {
+		const r = readRepo(repoInput.value);
+		const tag = tagSelect.value;
+		if (!r || !tag) return;
+		send.disabled = !login;
+		// Registry status, from the site's own listing.
+		const entry = listed.find((e) => e.repo_url.toLowerCase() === `https://github.com/${r.owner}/${r.repo}`.toLowerCase());
+		const status = !entry
+			? 'New paper for the registry.'
+			: entry.versions.some((v) => v.tag === tag)
+				? `Already listed as ${entry.id}. Nothing to submit.`
+				: `New version of ${entry.id}.`;
+		if (entry?.versions.some((v) => v.tag === tag)) send.disabled = true;
+		tagHint.textContent = status;
+		preview.hidden = false;
+		preview.textContent = `Reading AGENTS.md at ${tag}…`;
+		const res = await fetch(`https://raw.githubusercontent.com/${r.owner}/${r.repo}/${encodeURIComponent(tag)}/AGENTS.md`);
+		if (tagSelect.value !== tag) return;
+		if (!res.ok) {
+			preview.textContent = `No AGENTS.md at ${tag}. The checks will fail without it.`;
 			return;
 		}
 		const text = await res.text();
 		const title = text.match(/^title:\s*["']?(.*?)["']?\s*$/m)?.[1];
 		const names = [...text.matchAll(/^\s*-\s+name:\s*["']?(.*?)["']?\s*$/gm)].map((m) => m[1]);
-		preview.textContent = title ? `${title}${names.length ? `, by ${names.join(', ')}` : ''}` : `Found AGENTS.md in ${r.owner}/${r.repo} at ${r.tag}.`;
+		preview.textContent = title ? `${title}${names.length ? `, by ${names.join(', ')}` : ''}` : `Found AGENTS.md at ${tag}.`;
 	}
-	release.addEventListener('input', update);
+
+	repoInput.addEventListener('input', loadReleases);
+	tagSelect.addEventListener('change', selectRelease);
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
-		const r = parseRelease(release.value);
+		const picked = readRepo(repoInput.value);
+		const r = picked && tagSelect.value ? parseRelease(`${picked.owner}/${picked.repo}@${tagSelect.value}`) : null;
 		const token = store.get(TOKEN);
 		if (!r || !token) return;
 		send.disabled = true;
@@ -187,7 +288,10 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 	label, legend { font-weight: 600; }
 	fieldset { border: 0; padding: 0; margin: 0.75rem 0 0.5rem; display: grid; gap: 0.35rem; }
 	fieldset label { font-weight: 400; display: flex; gap: 0.5rem; align-items: center; margin: 0; }
+	.preview { margin: 0.25rem 0 0; padding: 0.6rem 0.8rem; font-family: var(--app-serif); font-size: var(--sl-text-lg); background: var(--sl-color-gray-7, var(--sl-color-gray-6)); border-radius: 0.35rem; }
+	select, input[type='text'], #repo,
 	input[type='url'] { font: inherit; padding: 0.55rem 0.7rem; color: var(--sl-color-white); background: var(--sl-color-bg); border: 1px solid var(--sl-color-gray-4); border-radius: 0.35rem; }
+	.error { flex-basis: 100%; margin: 0; font-size: var(--sl-text-sm); color: var(--sl-color-red); }
 	.hint, #result { margin: 0; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
 	#result { color: var(--sl-color-white); min-height: 1.5em; }
 	button { font: inherit; font-weight: 600; padding: 0.55rem 1.1rem; border-radius: 999px; border: 0; cursor: pointer; color: var(--sl-color-black); background: var(--sl-color-accent); justify-self: start; }

@@ -53,8 +53,11 @@ async function callback(request: Request): Promise<Response> {
 	try {
 		const { authentication } = await exchangeWebFlowCode({ clientType: 'github-app', clientId, clientSecret, code });
 		return back({ token: authentication.token });
-	} catch {
-		return back({ error: 'GitHub sign-in failed. Try again.' });
+	} catch (err) {
+		// GitHub's reason (e.g. "The client_id and/or client_secret passed are incorrect.") is safe to show.
+		const reason = err instanceof Error ? err.message.replace(/^\[@octokit\/oauth-methods\]\s*/, '') : '';
+		console.error('GitHub code exchange failed:', reason);
+		return back({ error: `GitHub sign-in failed${reason ? `: ${reason}` : '.'} Try again.` });
 	}
 }
 

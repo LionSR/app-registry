@@ -101,6 +101,11 @@ def run_checks(sub: dict[str, Any], token: str | None) -> dict[str, Any]:
                 "detail": "This release is not listed yet." if listed_as is None else f"This release is already listed as {listed_as}.",
             }
         )
+    if listed_as:
+        # Nothing for an editor to confirm when the release is already listed.
+        for c in checks:
+            if c["name"] == "submitter" and not c["ok"]:
+                c["detail"] = f"@{sub['submitter']} is not the repository owner or a listed author."
     if not verified["ok"]:
         state = "checks-failed"
     elif listed_as:
