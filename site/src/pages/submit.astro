@@ -2,11 +2,12 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { Code } from '@astrojs/starlight/components';
 
-// Set at build time. Without them the page explains that submissions are not configured.
+// Set at build time. PUBLIC_SUBMIT_API is the function's base URL, e.g.
+// https://<project-ref>.supabase.co/functions/v1/registry. Without these the page says submissions are not configured.
 const api = import.meta.env.PUBLIC_SUBMIT_API ?? '';
 const clientId = import.meta.env.PUBLIC_GITHUB_APP_CLIENT_ID ?? '';
 const configured = Boolean(api && clientId);
-const agentCmd = `curl -X POST ${api || 'https://<submit-endpoint>'}/api/submit \\
+const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/functions/v1/registry'}/submit \\
   -H "Authorization: Bearer $(gh auth token)" \\
   -H "Content-Type: application/json" \\
   -d '{"release_url": "https://github.com/owner/repo/releases/tag/v1.0.0", "relationship": "author"}'`;
@@ -67,7 +68,7 @@ const agentCmd = `curl -X POST ${api || 'https://<submit-endpoint>'}/api/submit 
 </StarlightPage>
 
 <script>
-	import { parseRelease } from '../../../submit/lib/submission.ts';
+	import { parseRelease } from '../../../submit/supabase/functions/_shared/submission.ts';
 
 	const root = document.querySelector<HTMLElement>('.submit')!;
 	const api = root.dataset.api!;
@@ -114,7 +115,7 @@ const agentCmd = `curl -X POST ${api || 'https://<submit-endpoint>'}/api/submit 
 	$('signin').addEventListener('click', () => {
 		const state = crypto.randomUUID();
 		store.set(STATE, state);
-		const q = new URLSearchParams({ client_id: clientId, redirect_uri: `${api}/api/auth/callback`, state });
+		const q = new URLSearchParams({ client_id: clientId, redirect_uri: `${api}/auth/callback`, state });
 		location.href = `https://github.com/login/oauth/authorize?${q}`;
 	});
 	$('signout').addEventListener('click', () => {
@@ -157,7 +158,7 @@ const agentCmd = `curl -X POST ${api || 'https://<submit-endpoint>'}/api/submit 
 		send.disabled = true;
 		result.textContent = 'Submitting…';
 		try {
-			const res = await fetch(`${api}/api/submit`, {
+			const res = await fetch(`${api}/submit`, {
 				method: 'POST',
 				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
 				body: JSON.stringify({ release_url: r.url, relationship: new FormData(form).get('relationship') }),

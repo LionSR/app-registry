@@ -29,9 +29,9 @@ globalThis.fetch = (async (input: any, init: any = {}) => {
 	return json({ message: `unexpected ${method} ${url}` }, 500);
 }) as typeof fetch;
 
-const { POST, OPTIONS } = await import('../api/submit.ts');
+const { handle } = await import('./handler.ts');
 const post = (body: unknown, headers: Record<string, string> = {}) =>
-	POST(new Request('https://fn.example/api/submit', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) }));
+	handle(new Request('https://ref.supabase.co/functions/v1/registry/submit', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) }));
 
 test('opens the issue as the app, naming the verified submitter', async () => {
 	calls.length = 0;
@@ -62,6 +62,10 @@ test('rejects bad input with a readable error', async () => {
 	assert.equal((await post({ release_url: 'a/b@v1', relationship: 'reviewer' }, { authorization: 'Bearer good-user-token' })).status, 400);
 });
 
-test('CORS preflight only for the site', () => {
-	assert.equal(OPTIONS(new Request('https://fn.example/api/submit', { method: 'OPTIONS', headers: { origin: 'https://evil.example' } })).headers.get('access-control-allow-origin'), null);
+test('CORS preflight only for the site', async () => {
+	assert.equal((await handle(new Request('https://ref.supabase.co/functions/v1/registry/submit', { method: 'OPTIONS', headers: { origin: 'https://evil.example' } }))).headers.get('access-control-allow-origin'), null);
+});
+
+test('unknown routes return 404', async () => {
+	assert.equal((await handle(new Request('https://ref.supabase.co/functions/v1/registry/other'))).status, 404);
 });

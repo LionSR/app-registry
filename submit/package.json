@@ -2,9 +2,9 @@
   "name": "app-registry-submit",
   "private": true,
   "type": "module",
-  "description": "Stateless submit endpoint for the APP registry: GitHub sign-in callback and POST /api/submit.",
+  "description": "Stateless submit endpoint for the APP registry (Supabase Edge Function): GitHub sign-in callback and POST /submit.",
   "scripts": {
-    "test": "node --test --experimental-strip-types lib/*.test.ts"
+    "test": "node --test --experimental-strip-types supabase/functions/_shared/*.test.ts"
   },
   "dependencies": {
     "@octokit/auth-app": "^8.3.1",

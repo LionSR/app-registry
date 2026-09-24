@@ -4,7 +4,7 @@ The website and paper registry for the [Agentic Publication Protocol](https://gi
 
 - `registry/`: one JSON file per listed paper, plus the scripts that verify a release and write its entry. See [registry/README.md](registry/README.md).
 - `site/`: the Astro + Starlight website. The papers listing is built from `registry/entries/`, and the protocol docs are generated from the `protocol/` submodule. See [site/README.md](site/README.md).
-- `submit/`: the stateless submit endpoint (a Vercel function). See [submit/README.md](submit/README.md).
+- `submit/`: the stateless submit endpoint (a Supabase Edge Function). See [submit/README.md](submit/README.md).
 - `protocol/`: the protocol repository as a git submodule. It supplies `PROTOCOL.md`, the README sections shown on the site, and the release checks in `scripts/app_discussion_bot.py`.
 
 ```bash
@@ -17,7 +17,7 @@ cd app-registry/site && npm install && npm run build
 Authors submit a published APP release on the website's Submit page. Agents call the same endpoint with their GitHub CLI token:
 
 ```bash
-curl -X POST <submit-endpoint>/api/submit \
+curl -X POST https://<project-ref>.supabase.co/functions/v1/registry/submit \
   -H "Authorization: Bearer $(gh auth token)" \
   -H "Content-Type: application/json" \
   -d '{"release_url": "https://github.com/owner/repo/releases/tag/v1.0.0", "relationship": "author"}'

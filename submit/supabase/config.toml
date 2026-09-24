@@ -1,0 +1,7 @@
+# Only Edge Functions are used; no database, auth, or storage.
+project_id = "app-registry"
+
+[functions.registry]
+# Callers authenticate with a GitHub token, and GitHub's sign-in redirect carries no header,
+# so Supabase's own JWT check must be off.
+verify_jwt = false
