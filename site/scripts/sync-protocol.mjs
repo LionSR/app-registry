@@ -92,6 +92,8 @@ export function syncFromProtocolRepo(withBase = (p) => p) {
 		.map((t) => t.trim())
 		.filter((t) => /^v\d+\.\d+\.\d+$/.test(t))
 		.map((t) => t.slice(1))
+		// Pre-1.0 drafts are not published on the site.
+		.filter((v) => Number(v.split('.')[0]) >= 1)
 		.sort(semverDesc);
 	if (versions.length === 0) throw new Error('No vX.Y.Z tags found in protocol');
 	const latest = versions[0];
