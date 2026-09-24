@@ -1,0 +1,23 @@
+---
+import { LinkButton } from '@astrojs/starlight/components';
+---
+
+<aside class="publish-cta">
+	<p><strong>Want your paper here?</strong> Publish it as an agent with the APP plugin for Claude Code or Codex.</p>
+	<LinkButton href="/publish/" icon="right-arrow">Publish your paper</LinkButton>
+</aside>
+
+<style>
+	.publish-cta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem 1.5rem;
+		margin-top: 2.5rem;
+		padding: 1rem 1.25rem;
+		background: var(--sl-color-accent-low);
+		border-radius: 0.5rem;
+	}
+	.publish-cta p { margin: 0; }
+</style>

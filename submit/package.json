@@ -1,0 +1,18 @@
+{
+  "name": "app-registry-submit",
+  "private": true,
+  "type": "module",
+  "description": "Stateless submit endpoint for the APP registry: GitHub sign-in callback and POST /api/submit.",
+  "scripts": {
+    "test": "node --test --experimental-strip-types lib/*.test.ts"
+  },
+  "dependencies": {
+    "@octokit/auth-app": "^8.3.1",
+    "@octokit/oauth-methods": "^6.0.5",
+    "@octokit/request": "^10.0.16"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
+}

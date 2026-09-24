@@ -1,0 +1,26 @@
+---
+// Top-level sections in the header, before the GitHub icon.
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+
+const path = Astro.url.pathname;
+const isPapers = path === '/' || path.startsWith('/papers');
+const isPublish = path.startsWith('/publish');
+const isSubmit = path.startsWith('/submit');
+const sections = [
+	{ label: 'Papers', href: '/', active: isPapers },
+	{ label: 'Publish', href: '/publish/', active: isPublish },
+	{ label: 'Submit', href: '/submit/', active: isSubmit },
+	{ label: 'Docs', href: '/about/', active: !isPapers && !isPublish && !isSubmit },
+];
+---
+
+<nav class="sections" aria-label="Sections">
+	{sections.map((s) => <a href={s.href} aria-current={s.active ? 'page' : undefined}>{s.label}</a>)}
+</nav>
+<Default />
+
+<style>
+	.sections { display: flex; gap: 1.25rem; margin-inline-end: 1rem; }
+	.sections a { color: var(--sl-color-gray-2); text-decoration: none; font-weight: 500; }
+	.sections a:hover, .sections a[aria-current='page'] { color: var(--sl-color-white); }
+</style>

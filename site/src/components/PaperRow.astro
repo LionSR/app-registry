@@ -1,0 +1,36 @@
+---
+import type { Paper } from '../lib/papers';
+import { firstListed } from '../lib/papers';
+import { formatDate } from '../lib/format';
+
+const { paper } = Astro.props as { paper: Paper };
+const authors = paper.authors?.map((a) => a.name).join(', ');
+const search = [paper.title, authors, paper.domain, ...(paper.tags ?? []), paper.id].filter(Boolean).join(' ').toLowerCase();
+---
+
+<li class="row" data-search={search}>
+	<a class="paper-title" href={`/papers/${paper.id}/`}>{paper.title}</a>
+	<time datetime={firstListed(paper)}>{formatDate(firstListed(paper))}</time>
+	{authors && <span class="authors">{authors}</span>}
+	{paper.domain && <span class="domain">{paper.domain}</span>}
+</li>
+
+<style>
+	.row {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 0.15rem 1.5rem;
+		padding: 0.7rem 0;
+		margin: 0;
+		border-bottom: 1px solid var(--sl-color-hairline);
+	}
+	.paper-title { font-size: 1.2rem; line-height: 1.3; text-decoration: none; }
+	.paper-title:hover { color: var(--sl-color-accent-high); text-decoration: underline; text-underline-offset: 0.15em; }
+	time, .domain { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); text-align: end; white-space: nowrap; }
+	.authors { font-size: var(--sl-text-sm); color: var(--sl-color-gray-2); }
+	@media (max-width: 40rem) {
+		.row { grid-template-columns: 1fr; }
+		time, .domain { text-align: start; }
+		time { order: 3; }
+	}
+</style>

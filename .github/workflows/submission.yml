@@ -1,0 +1,74 @@
+# Checks and reviews submission issues opened by the registry's GitHub App.
+# The decision logic lives in registry/scripts/submission.py; this file only applies it.
+name: Submission
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+# One run at a time, so two accepts can never take the same ID.
+concurrency:
+  group: registry
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  handle:
+    # Only issues the registry app opened, and only commands in comments.
+    if: >-
+      github.event.issue.user.login == vars.REGISTRY_BOT_LOGIN &&
+      !github.event.issue.pull_request &&
+      (github.event_name == 'issues' || startsWith(github.event.comment.body, '/'))
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      REGISTRY_BOT_LOGIN: ${{ vars.REGISTRY_BOT_LOGIN }}
+      SITE_URL: ${{ vars.SITE_URL }}
+      ISSUE: ${{ github.event.issue.number }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Decide
+        run: python registry/scripts/submission.py --event "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" > plan.json && cat plan.json
+
+      - name: Apply
+        run: |
+          set -euo pipefail
+          [ "$(jq -r .act plan.json)" = true ] || { echo "Nothing to do: $(jq -r '.reason // ""' plan.json)"; exit 0; }
+
+          entry=$(jq -r '.entry_path // empty' plan.json)
+          if [ -n "$entry" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add "$entry"
+            jq -r .commit_message plan.json | git commit -F -
+            git push
+          fi
+
+          for label in $(jq -r '.labels_remove[]?' plan.json); do
+            gh issue edit "$ISSUE" --remove-label "$label" 2>/dev/null || true
+          done
+          for label in $(jq -r '.labels_add[]?' plan.json); do
+            gh label create "$label" --force >/dev/null
+            gh issue edit "$ISSUE" --add-label "$label"
+          done
+
+          jq -r '.comment // empty' plan.json > comment.md
+          [ -s comment.md ] && gh issue comment "$ISSUE" --body-file comment.md
+
+          close=$(jq -r '.close // empty' plan.json)
+          if [ -n "$close" ] && [ "$(gh issue view "$ISSUE" --json state -q .state)" = OPEN ]; then
+            gh issue close "$ISSUE" --reason "$close"
+          fi

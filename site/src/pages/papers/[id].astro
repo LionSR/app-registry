@@ -1,0 +1,164 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Marked } from 'marked';
+import { allPapers, firstListed, latest, versionId, type Paper } from '../../lib/papers';
+import { formatDate } from '../../lib/format';
+import PublishCta from '../../components/PublishCta.astro';
+
+export async function getStaticPaths() {
+	const papers = await allPapers();
+	return papers.map((paper) => ({ params: { id: paper.id }, props: { paper } }));
+}
+
+const { paper } = Astro.props as { paper: Paper };
+const current = latest(paper);
+// The summary is the repo's own Markdown, rendered as written. Raw HTML is escaped.
+const marked = new Marked({ renderer: { html: ({ text }) => text.replace(/</g, '&lt;') } });
+const summaryHtml = paper.paper_summary ? marked.parse(paper.paper_summary) : '';
+// Clone the listed release (with submodules, which some papers use) and start the agent inside it,
+// so it reads the paper's AGENTS.md (Claude Code through CLAUDE.md) on startup.
+const folder = paper.repo_url.split('/').pop()!;
+const clone = `git clone --recurse-submodules --branch ${current.tag} ${paper.repo_url}.git\ncd ${folder}`;
+const releaseUrl = current.release_url;
+// Paper-style author block: each distinct affiliation is numbered once.
+const affiliations = [...new Set((paper.authors ?? []).map((a) => a.affiliation).filter(Boolean))] as string[];
+const affNo = (a?: string) => (a ? affiliations.indexOf(a) + 1 : 0);
+const showAffNo = affiliations.length > 1;
+---
+
+<StarlightPage
+	frontmatter={{
+		title: paper.title,
+		template: 'splash', // Papers are their own section, without the docs sidebar.
+		description: `${paper.id}: ${paper.title}`,
+		// Machine-readable entry for agents; not shown to readers.
+		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: `/papers/${paper.id}.json` } }],
+	}}
+	hasSidebar={false}
+>
+	<article class="paper">
+		{
+			paper.authors && (
+				<p class="authors">
+					{paper.authors.map((a, i) => (
+						<>
+							{i > 0 && ', '}
+							{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}
+							{showAffNo && affNo(a.affiliation) > 0 && <sup>{affNo(a.affiliation)}</sup>}
+						</>
+					))}
+				</p>
+			)
+		}
+		{
+			affiliations.length > 0 && (
+				<ol class="affs" class:list={{ plain: !showAffNo }}>
+					{affiliations.map((a) => <li>{a}</li>)}
+				</ol>
+			)
+		}
+
+		<p class="facts">
+			<span>{paper.id}</span>
+			{paper.domain && <span>{paper.domain}</span>}
+			{paper.arxiv_id && <a href={`https://arxiv.org/abs/${paper.arxiv_id}`}>arXiv:{paper.arxiv_id}</a>}
+			<a href={current.release_url}>Release {current.tag}</a>
+			<span>Listed {formatDate(firstListed(paper))}</span>
+		</p>
+
+		<section class="open" aria-labelledby="open">
+			<h2 id="open">Open in your agent</h2>
+			<Tabs syncKey="agent">
+				<TabItem label="Claude Code"><Code code={`${clone}\nclaude`} lang="bash" /></TabItem>
+				<TabItem label="Codex"><Code code={`${clone}\ncodex`} lang="bash" /></TabItem>
+			</Tabs>
+			<p>
+				The agent reads the paper's <code>AGENTS.md</code> when it starts, then explains the work, reproduces figures, and
+				answers questions grounded in the paper, code, and data. Any agent that reads <code>AGENTS.md</code> works.
+			</p>
+			<p>
+				To consult the paper from inside another project, run <code>/load-paper {releaseUrl}</code> with the
+				<a href="/publish/">APP plugin</a> installed. It brings the paper into that project and checks that the release is a
+				verified APP publication.
+			</p>
+			<a class="repo" href={paper.repo_url}>View the repository on GitHub</a>
+		</section>
+
+		{
+			summaryHtml && (
+				<section aria-labelledby="summary">
+					<h2 id="summary">Summary</h2>
+					<div class="summary" set:html={summaryHtml} />
+				</section>
+			)
+		}
+
+		{
+			paper.tags && (
+				<ul class="tags" aria-label="Tags">
+					{paper.tags.map((t) => <li>{t}</li>)}
+				</ul>
+			)
+		}
+
+		{paper.versions.length > 1 && (
+		<section aria-labelledby="versions">
+			<h2 id="versions">Versions</h2>
+			<table>
+				<tbody>
+					{
+						[...paper.versions].reverse().map((v) => (
+							<tr>
+								<td>{versionId(paper, v.v)}</td>
+								<td><a href={v.release_url}>{v.tag}</a></td>
+								<td>{formatDate(v.listed_at)}</td>
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</section>
+		)}
+		<PublishCta />
+	</article>
+</StarlightPage>
+
+<style>
+	/* The page h1 is the paper title. */
+	:global(main:has(.paper) h1) {
+		font-family: var(--app-serif);
+		font-optical-sizing: auto;
+		font-weight: 500;
+		line-height: 1.15;
+	}
+	.paper { max-width: 46rem; }
+	.authors { font-size: var(--sl-text-lg); color: var(--sl-color-white); }
+	.authors sup { font-size: 0.65em; margin-inline-start: 0.1em; }
+	.affs { margin-top: 0.25rem; padding-inline-start: 1.1rem; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+	.affs li { margin: 0; }
+	.affs.plain { list-style: none; padding: 0; }
+	.facts { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+	.paper h2 { font-size: var(--sl-text-lg); margin-top: 2rem; }
+	.open {
+		margin-top: 1.5rem;
+		padding: 1rem 1.25rem;
+		border-inline-start: 3px solid var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+	}
+	.open h2 { margin-top: 0; }
+	.open p { font-size: var(--sl-text-sm); margin-top: 0.75rem; }
+	.open :global(.expressive-code) { margin-top: 0.5rem; }
+	.repo { font-size: var(--sl-text-sm); }
+	.summary { max-width: 70ch; }
+	.tags { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.25rem; }
+	.tags li {
+		margin: 0;
+		padding: 0.1rem 0.55rem;
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 1rem;
+	}
+	table { font-size: var(--sl-text-sm); }
+</style>

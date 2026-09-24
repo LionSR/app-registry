@@ -1,0 +1,6 @@
+# Submissions come only from the submit page or endpoint, never from hand-written issues.
+blank_issues_enabled: false
+contact_links:
+  - name: Submit a paper
+    url: https://github.com/LionSR/app-registry#submitting
+    about: Submit an APP release from the website, or from an agent with the submit endpoint.

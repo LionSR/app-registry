@@ -1,0 +1,14 @@
+---
+const { src, poster, label } = Astro.props as { src: string; poster: string; label: string };
+---
+
+<figure class="video">
+	<video controls preload="none" playsinline poster={poster} aria-label={label}>
+		<source src={src} type="video/mp4" />
+	</video>
+</figure>
+
+<style>
+	.video { margin: 0; }
+	video { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 0.4rem; background: #000; }
+</style>
