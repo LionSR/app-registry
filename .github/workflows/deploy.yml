@@ -1,0 +1,48 @@
+# Builds the site and publishes it to GitHub Pages.
+# Follows Astro's GitHub Pages guide: https://docs.astro.build/en/guides/deploy/github/
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  # Also started by the Submission workflow after it lists a paper
+  # (pushes made with GITHUB_TOKEN do not trigger other workflows).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+      BASE_PATH: ${{ vars.BASE_PATH }}
+      NOINDEX: ${{ vars.NOINDEX }}
+      PUBLIC_SUBMIT_API: ${{ vars.PUBLIC_SUBMIT_API }}
+      PUBLIC_GITHUB_APP_CLIENT_ID: ${{ vars.PUBLIC_GITHUB_APP_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      # The protocol pages are generated from every release tag of the protocol repo.
+      - run: git -C protocol fetch --tags --quiet
+      - uses: withastro/action@v6
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

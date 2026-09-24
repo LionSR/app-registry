@@ -1,5 +1,11 @@
 ---
-const { src, poster, label } = Astro.props as { src: string; poster: string; label: string };
+import { url } from '../lib/url';
+
+const props = Astro.props as { src: string; poster: string; label: string };
+// Accept site paths like /media/x.mp4 and apply the base.
+const src = props.src.startsWith('/') ? url(props.src) : props.src;
+const poster = props.poster.startsWith('/') ? url(props.poster) : props.poster;
+const { label } = props;
 ---
 
 <figure class="video">

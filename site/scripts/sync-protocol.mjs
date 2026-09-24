@@ -42,13 +42,13 @@ function semverDesc(a, b) {
 	return 0;
 }
 
-function rewriteLinks(md) {
+function rewriteLinks(md, withBase) {
 	return md.replace(/(!?)\[([^\]]*)\]\(([^)\s]+)\)/g, (whole, bang, text, href) => {
 		if (/^(https?:|mailto:|\/)/.test(href)) return whole;
 		let to;
-		if (href.startsWith('assets/readme/')) to = '/readme/' + href.slice('assets/readme/'.length);
-		else if (href === 'PROTOCOL.md') to = '/protocol/latest/';
-		else if (href === '#publish-a-paper') to = '/guides/publish/';
+		if (href.startsWith('assets/readme/')) to = withBase('/readme/' + href.slice('assets/readme/'.length));
+		else if (href === 'PROTOCOL.md') to = withBase('/protocol/latest/');
+		else if (href === '#publish-a-paper') to = withBase('/guides/publish/');
 		else if (href === '#license') to = `${REPO_URL}#license`;
 		else if (href.startsWith('#')) return whole;
 		else to = `${REPO_URL}/blob/main/${href.replace(/^\.\//, '')}`;
@@ -82,7 +82,8 @@ function write(rel, content) {
 	writeFileSync(path, content);
 }
 
-export function syncFromProtocolRepo() {
+/** @param {(path: string) => string} withBase applies the site's base path to an internal link */
+export function syncFromProtocolRepo(withBase = (p) => p) {
 	for (const g of GENERATED) rmSync(join(DOCS, g), { recursive: true, force: true });
 
 	// Protocol: one page per vX.Y.Z tag.
@@ -101,7 +102,7 @@ export function syncFromProtocolRepo() {
 		const aside =
 			v === latest
 				? ''
-				: `:::caution\nThis is an older version of the protocol. The current version is [${latest}](/protocol/${latest}/).\n:::\n\n`;
+				: `:::caution\nThis is an older version of the protocol. The current version is [${latest}](${withBase(`/protocol/${latest}/`)}).\n:::\n\n`;
 		write(
 			`protocol/${v}.md`,
 			frontmatter({
@@ -112,7 +113,7 @@ export function syncFromProtocolRepo() {
 			}) +
 				NOTICE(`PROTOCOL.md at tag v${v}`) +
 				aside +
-				rewriteLinks(body),
+				rewriteLinks(body, withBase),
 		);
 	}
 
@@ -128,7 +129,7 @@ export function syncFromProtocolRepo() {
 			text = text.replace(/^### /gm, '## ');
 			return page.sections.length > 1 ? `## ${name}\n${text}` : text;
 		});
-		write(page.out, frontmatter({ title: page.title }) + NOTICE('README.md') + rewriteLinks(parts.join('\n').trim()) + '\n');
+		write(page.out, frontmatter({ title: page.title }) + NOTICE('README.md') + rewriteLinks(parts.join('\n').trim(), withBase) + '\n');
 	}
 
 	const partials = join(SITE, 'src', 'generated');
@@ -139,7 +140,7 @@ export function syncFromProtocolRepo() {
 		if (!lines) throw new Error(`README section "## ${part.section}" not found`);
 		let text = lines.join('\n');
 		if (part.stopAt && text.includes(part.stopAt)) text = text.slice(0, text.indexOf(part.stopAt));
-		writeFileSync(join(partials, part.out), NOTICE('README.md') + rewriteLinks(text.trim()) + '\n');
+		writeFileSync(join(partials, part.out), NOTICE('README.md') + rewriteLinks(text.trim(), withBase) + '\n');
 	}
 
 	const imgOut = join(SITE, 'public', 'readme');

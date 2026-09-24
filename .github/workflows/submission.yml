@@ -16,6 +16,7 @@ concurrency:
 permissions:
   contents: write
   issues: write
+  actions: write # to start the site deploy after listing a paper
 
 jobs:
   handle:
@@ -32,7 +33,7 @@ jobs:
       SITE_URL: ${{ vars.SITE_URL }}
       ISSUE: ${{ github.event.issue.number }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -55,6 +56,7 @@ jobs:
             git add "$entry"
             jq -r .commit_message plan.json | git commit -F -
             git push
+            gh workflow run deploy.yml --ref main
           fi
 
           for label in $(jq -r '.labels_remove[]?' plan.json); do

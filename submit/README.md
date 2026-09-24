@@ -32,7 +32,7 @@ npm test        # unit tests plus the handler with GitHub faked, under Node
      GITHUB_APP_CLIENT_SECRET=<client secret> \
      GITHUB_APP_PRIVATE_KEY="$(cat path/to/private-key.pem)" \
      REGISTRY_REPO=LionSR/app-registry \
-     SITE_URL=https://lionsr.github.io/app-registry
+     SITE_URL=https://sirui-lu.com/app-registry
    supabase functions deploy registry --project-ref <project-ref> --no-verify-jwt
    ```
 

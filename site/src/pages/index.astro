@@ -3,6 +3,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { LinkButton } from '@astrojs/starlight/components';
 import PaperRow from '../components/PaperRow.astro';
 import Video from '../components/Video.astro';
+import { url } from '../lib/url';
 import { allPapers, firstListed } from '../lib/papers';
 
 const papers = await allPapers();
@@ -20,7 +21,7 @@ for (const p of papers) {
 		title: 'Instead of only publishing a paper, publish an agent.',
 		template: 'splash',
 		description: 'New papers published with the Agentic Publication Protocol. Each one is a GitHub repository you can open in a coding agent.',
-		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: '/papers/index.json' } }],
+		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: url('/papers/index.json') } }],
 	}}
 >
 	<div class="catalog">
@@ -32,8 +33,8 @@ for (const p of papers) {
 					for the paper: it can explain the work, reproduce figures, run experiments, and answer questions grounded in it.
 				</p>
 				<div class="actions">
-					<LinkButton href="/publish/" icon="right-arrow">Publish your paper</LinkButton>
-					<LinkButton href="/about/" variant="secondary">Why APP</LinkButton>
+					<LinkButton href={url('/publish/')} icon="right-arrow">Publish your paper</LinkButton>
+					<LinkButton href={url('/about/')} variant="secondary">Why APP</LinkButton>
 				</div>
 			</div>
 			<Video src="/media/app-promo.mp4" poster="/media/app-promo.jpg" label="APP in 70 seconds" />

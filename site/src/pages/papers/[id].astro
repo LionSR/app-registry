@@ -5,6 +5,7 @@ import { Marked } from 'marked';
 import { allPapers, firstListed, latest, versionId, type Paper } from '../../lib/papers';
 import { formatDate } from '../../lib/format';
 import PublishCta from '../../components/PublishCta.astro';
+import { url } from '../../lib/url';
 
 export async function getStaticPaths() {
 	const papers = await allPapers();
@@ -33,7 +34,7 @@ const showAffNo = affiliations.length > 1;
 		template: 'splash', // Papers are their own section, without the docs sidebar.
 		description: `${paper.id}: ${paper.title}`,
 		// Machine-readable entry for agents; not shown to readers.
-		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: `/papers/${paper.id}.json` } }],
+		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: url(`/papers/${paper.id}.json`) } }],
 	}}
 	hasSidebar={false}
 >
@@ -79,7 +80,7 @@ const showAffNo = affiliations.length > 1;
 			</p>
 			<p>
 				To consult the paper from inside another project, run <code>/load-paper {releaseUrl}</code> with the
-				<a href="/publish/">APP plugin</a> installed. It brings the paper into that project and checks that the release is a
+				<a href={url('/publish/')}>APP plugin</a> installed. It brings the paper into that project and checks that the release is a
 				verified APP publication.
 			</p>
 			<a class="repo" href={paper.repo_url}>View the repository on GitHub</a>
