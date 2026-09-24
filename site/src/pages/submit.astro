@@ -213,7 +213,21 @@ const agentCmd = `curl -X POST ${api || 'https://<project-ref>.supabase.co/funct
 		}
 		if (!eligible.length) {
 			tagSelect.innerHTML = '<option>No release can be submitted yet</option>';
-			tagHint.innerHTML = `Publish the paper first: the <a href="${BASE}/publish/">publishing skill</a> creates the release and its APP_PUBLICATION.json.`;
+			// A fork rarely carries the publication; point to the repository it was forked from.
+			const meta = await gh(`/repos/${r.owner}/${r.repo}`).then((x) => (x.ok ? x.json() : null));
+			if (current !== key) return;
+			const parent: string | undefined = meta?.fork ? meta.parent?.full_name : undefined;
+			if (parent) {
+				tagHint.textContent = `${r.owner}/${r.repo} is a fork of ${parent}. The publication is usually in the original repository. `;
+				const use = Object.assign(document.createElement('button'), { type: 'button', className: 'link', textContent: `Use ${parent}` });
+				use.addEventListener('click', () => {
+					repoInput.value = parent;
+					loadReleases();
+				});
+				tagHint.append(use);
+			} else {
+				tagHint.innerHTML = `Publish the paper first: the <a href="${BASE}/publish/">publishing skill</a> creates the release and its APP_PUBLICATION.json.`;
+			}
 			return;
 		}
 		tagSelect.disabled = false;
