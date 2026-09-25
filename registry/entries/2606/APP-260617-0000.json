@@ -1,0 +1,33 @@
+{
+  "id": "APP-260617-0000",
+  "repo_url": "https://github.com/XiaoliangQi/agentic-publication-protocol-dev.app",
+  "versions": [
+    {
+      "v": 1,
+      "tag": "v1.0.0",
+      "commit": "b95d4a8a4a077226b51f252ac84b526b2bcc1a5f",
+      "app_publication_id": "app-v1:sha256:6f50adff8738531cbaae9ebe657d8f763dabc3adbbf9b65e47b82bcd84d7834e",
+      "release_url": "https://github.com/XiaoliangQi/agentic-publication-protocol-dev.app/releases/tag/v1.0.0",
+      "listed_at": "2026-06-17",
+      "title": "Agentic Publication Protocol: An Attempt to Modernize Scientific Publication",
+      "authors": [
+        {
+          "name": "Sirui Lu",
+          "affiliation": "Max-Planck-Institut fuer Quantenoptik; Munich Center for Quantum Science and Technology"
+        },
+        {
+          "name": "Xiao-Liang Qi",
+          "affiliation": "Leinweber Institute for Theoretical Physics, Stanford University"
+        }
+      ],
+      "domain": "scientific-publication",
+      "tags": [
+        "agentic-publication-protocol",
+        "scientific-publication",
+        "reproducibility",
+        "paper-agents"
+      ],
+      "paper_summary": "Rather than publishing only a static paper, APP proposes a more reproducible,\ninformative, and interactive publication format. An APP publication is an\norganized bundle of the research work: paper, code, data, environment\ninformation, and related context, together with an `AGENTS.md` instruction file\nthat lets future readers interact with a faithful paper agent.\n\nThe goal is for scientific publications to carry not only knowledge, but also\nknow-how: the practical understanding needed to interpret, reproduce, and build\non the work, which has traditionally been difficult to transfer faithfully. The\npaper defines the protocol, describes agent skills for preparing APP\npublications, and reports a small `compare-app` evaluation in which APP paper\nagents show stronger grounding and honesty than a general repository-aware agent."
+    }
+  ]
+}

@@ -5,8 +5,9 @@ Verification and metadata extraction reuse the protocol repo's discussion bot
 (`verify`, `resolve_commit_tree`, `parse_ref`), so the registry and the bot can
 never disagree about what counts as a verified APP publication.
 
-Entry files live in registry/entries/<ID>.json, one per paper. A new release of
-an already-listed repo is appended to that entry's `versions`.
+Entry files live in registry/entries/<YYMM>/<ID>.json, one per paper. A new release of
+an already-listed repo is appended to that entry's `versions`; each version
+holds the paper's metadata as released at its tag.
 
     python registry/scripts/registry.py add <release-url> [--date YYYY-MM-DD] [--dry-run]
 """
@@ -24,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-ENTRIES = ROOT / "registry" / "entries"
+ENTRIES = ROOT / "registry" / "entries"  # grouped by month: entries/<YYMM>/<ID>.json
 # IDs of removed listings. They are never given out again (see the terms of use).
 RETIRED = ROOT / "registry" / "retired-ids.txt"
 sys.path.insert(0, str(ROOT / "protocol" / "scripts"))
@@ -91,15 +92,20 @@ def snapshot(verified: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def entry_path(entry_id: str) -> Path:
+    """entries/2609/APP-260923-0000.json: the month folder is the ID's YYMM, as on arXiv."""
+    return ENTRIES / entry_id[4:8] / f"{entry_id}.json"
+
+
 def load_entries() -> list[dict[str, Any]]:
-    return [json.loads(p.read_text()) for p in sorted(ENTRIES.glob("APP-*.json"))]
+    return [json.loads(p.read_text()) for p in sorted(ENTRIES.glob("*/APP-*.json"))]
 
 
 def next_id(date: dt.date) -> str:
     """The day's next free number, counting listed and retired IDs alike."""
     stamp = date.strftime("%y%m%d")
     retired = RETIRED.read_text().split() if RETIRED.exists() else []
-    ids = [p.stem for p in ENTRIES.glob(f"APP-{stamp}-*.json")] + [i for i in retired if i.startswith(f"APP-{stamp}-")]
+    ids = [p.stem for p in ENTRIES.glob(f"*/APP-{stamp}-*.json")] + [i for i in retired if i.startswith(f"APP-{stamp}-")]
     taken = [int(m.group(2)) for i in ids if (m := ID_RE.match(i))]
     return f"APP-{stamp}-{(max(taken) + 1 if taken else 0):04d}"
 
@@ -107,45 +113,34 @@ def next_id(date: dt.date) -> str:
 def add(verified: dict[str, Any], date: dt.date, dry_run: bool = False) -> tuple[dict[str, Any], str]:
     """Create a new entry, or append a version to the repo's existing one.
 
+    Every version carries its own copy of the paper's metadata as released at
+    its tag, so older versions stay readable as they were.
     Returns (entry, what_happened) where what_happened is "new", "version" or "duplicate".
     """
     repo_url = f"https://github.com/{verified['owner_repo']}"
+    existing = next((e for e in load_entries() if e["repo_url"].lower() == repo_url.lower()), None)
+    if existing and any(v["tag"] == verified["tag"] for v in existing["versions"]):
+        return existing, "duplicate"
+    versions = existing["versions"] if existing else []
     version = {
-        "v": 1,
+        "v": len(versions) + 1,
         "tag": verified["tag"],
         "commit": verified["commit"],
         "app_publication_id": verified["app_publication_id"],
         "release_url": verified["release_url"],
         "listed_at": date.isoformat(),
+        **snapshot(verified),
     }
-    existing = next(
-        (e for e in load_entries() if e["repo_url"].lower() == repo_url.lower()), None
-    )
-    if existing:
-        if any(v["tag"] == version["tag"] for v in existing["versions"]):
-            return existing, "duplicate"
-        version["v"] = len(existing["versions"]) + 1
-        # Top-level metadata always reflects the newest listed version.
-        entry = {
-            "id": existing["id"],
-            "repo_url": existing["repo_url"],
-            **snapshot(verified),
-            "versions": existing["versions"] + [version],
-        }
-        what = "version"
-    else:
-        entry = {
-            "id": next_id(date),
-            "repo_url": repo_url,
-            **snapshot(verified),
-            "versions": [version],
-        }
-        what = "new"
+    entry = {
+        "id": existing["id"] if existing else next_id(date),
+        "repo_url": existing["repo_url"] if existing else repo_url,
+        "versions": versions + [version],
+    }
     if not dry_run:
-        ENTRIES.mkdir(parents=True, exist_ok=True)
-        path = ENTRIES / f"{entry['id']}.json"
+        path = entry_path(entry["id"])
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(entry, indent=2, ensure_ascii=False) + "\n")
-    return entry, what
+    return entry, "version" if existing else "new"
 
 
 def main() -> int:

@@ -1,19 +1,20 @@
 ---
 import type { Paper } from '../lib/papers';
-import { firstListed } from '../lib/papers';
+import { firstListed, latest } from '../lib/papers';
 import { formatDate } from '../lib/format';
 import { url } from '../lib/url';
 
 const { paper } = Astro.props as { paper: Paper };
-const authors = paper.authors?.map((a) => a.name).join(', ');
-const search = [paper.title, authors, paper.domain, ...(paper.tags ?? []), paper.id].filter(Boolean).join(' ').toLowerCase();
+const meta = latest(paper);
+const authors = meta.authors?.map((a) => a.name).join(', ');
+const search = [meta.title, authors, meta.domain, ...(meta.tags ?? []), paper.id].filter(Boolean).join(' ').toLowerCase();
 ---
 
 <li class="row" data-search={search}>
-	<a class="paper-title" href={url(`/papers/${paper.id}/`)}>{paper.title}</a>
+	<a class="paper-title" href={url(`/papers/${paper.id}/`)}>{meta.title}</a>
 	<time datetime={firstListed(paper)}>{formatDate(firstListed(paper))}</time>
 	{authors && <span class="authors">{authors}</span>}
-	{paper.domain && <span class="domain">{paper.domain}</span>}
+	{meta.domain && <span class="domain">{meta.domain}</span>}
 </li>
 
 <style>

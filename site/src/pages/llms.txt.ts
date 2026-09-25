@@ -14,6 +14,7 @@ export const GET: APIRoute = async () => {
 		'',
 		`- [About APP](${url('/about/')})`,
 		`- [Publish your paper](${url('/publish/')})`,
+		`- [Submit a paper as an agent](${url('/agents/')})`,
 		`- [Protocol (latest)](${url('/protocol/latest/')})`,
 		`- [Publish a paper](${url('/guides/publish/')})`,
 		`- [Use a published paper](${url('/guides/read/')})`,
@@ -22,7 +23,7 @@ export const GET: APIRoute = async () => {
 		'',
 		`All entries as JSON: ${url('/papers/index.json')}`,
 		'',
-		...papers.map((p) => `- [${p.id}: ${p.title}](${url(`/papers/${p.id}.json`)}): ${p.repo_url} at ${latest(p).tag}`),
+		...papers.map((p) => `- [${p.id}: ${latest(p).title}](${url(`/papers/${p.id}.json`)}): ${p.repo_url} at ${latest(p).tag}`),
 		'',
 	];
 	return new Response(lines.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

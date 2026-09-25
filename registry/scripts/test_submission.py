@@ -33,7 +33,7 @@ run("2 not opened by bot", ev_open(issue(GOOD, 'shoaibphysics', user='someone'))
 
 tmp = ROOT / 'registry' / '.test-entries'
 shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
-registry.ENTRIES = submission.ENTRIES = tmp
+registry.ENTRIES = tmp
 try:
     print("== against an empty registry ==")
     p3 = run("3 fresh release, every check passes", ev_open(issue(GOOD, 'shoaibphysics')))
@@ -41,7 +41,7 @@ try:
     for label, reply in [('clean', '{"flag": false, "reasons": [], "summary": "A physics paper."}'), ('flagged', '{"flag": true, "reasons": ["Looks like a placeholder."], "summary": "x"}'), ('no reply', None), ('garbage reply', 'I cannot help with that.')]:
         f = submission.finalize(p3['pending'], reply, TODAY)
         print(f"   finalize {label:13} -> {f.get('state')}", '| entry', f.get('entry_path', '-'), '|', [l for l in f['comment'].splitlines() if 'automatic review' in l.lower()][:1])
-        for x in tmp.iterdir(): x.unlink()
+        shutil.rmtree(tmp); tmp.mkdir()
     run("4a no write access, listed author", ev_open(issue(GOOD, 'shoaibphysics', write_access=False)))
     run("4b no write access, not an author", ev_open(issue(GOOD, 'randomperson', write_access=False)))
     run("5 bad tag", ev_open(issue(BAD, 'shoaibphysics')))

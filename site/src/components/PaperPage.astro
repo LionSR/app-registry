@@ -2,36 +2,34 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Marked } from 'marked';
-import { allPapers, firstListed, latest, versionId, type Paper } from '../../lib/papers';
-import { formatDate } from '../../lib/format';
-import PublishCta from '../../components/PublishCta.astro';
-import { url } from '../../lib/url';
+import { firstListed, latest, versionId, type Paper, type Version } from '../lib/papers';
+import { formatDate } from '../lib/format';
+import PublishCta from './PublishCta.astro';
+import { url } from '../lib/url';
 
-export async function getStaticPaths() {
-	const papers = await allPapers();
-	return papers.map((paper) => ({ params: { id: paper.id }, props: { paper } }));
-}
-
-const { paper } = Astro.props as { paper: Paper };
-const current = latest(paper);
+// One version of a paper. /papers/<ID>/ shows the latest; /papers/<ID>/v<N>/ shows version N.
+const { paper, version: current } = Astro.props as { paper: Paper; version: Version };
+const newest = latest(paper);
+const isLatest = current.v === newest.v;
+const paperUrl = (v?: Version) => url(v && v.v !== newest.v ? `/papers/${paper.id}/v${v.v}/` : `/papers/${paper.id}/`);
 // The summary is the repo's own Markdown, rendered as written. Raw HTML is escaped.
 const marked = new Marked({ renderer: { html: ({ text }) => text.replace(/</g, '&lt;') } });
-const summaryHtml = paper.paper_summary ? marked.parse(paper.paper_summary) : '';
+const summaryHtml = current.paper_summary ? marked.parse(current.paper_summary) : '';
 // Clone the listed release (with submodules, which some papers use) and start the agent inside it,
 // so it reads the paper's AGENTS.md (Claude Code through CLAUDE.md) on startup.
 const folder = paper.repo_url.split('/').pop()!;
 const clone = `git clone --recurse-submodules --branch ${current.tag} ${paper.repo_url}.git\ncd ${folder}`;
 // Paper-style author block: each distinct affiliation is numbered once.
-const affiliations = [...new Set((paper.authors ?? []).map((a) => a.affiliation).filter(Boolean))] as string[];
+const affiliations = [...new Set((current.authors ?? []).map((a) => a.affiliation).filter(Boolean))] as string[];
 const affNo = (a?: string) => (a ? affiliations.indexOf(a) + 1 : 0);
 const showAffNo = affiliations.length > 1;
 ---
 
 <StarlightPage
 	frontmatter={{
-		title: paper.title,
+		title: current.title,
 		template: 'splash', // Papers are their own section, without the docs sidebar.
-		description: `${paper.id}: ${paper.title}`,
+		description: `${isLatest ? paper.id : versionId(paper, current)}: ${current.title}`,
 		// Machine-readable entry for agents; not shown to readers.
 		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: url(`/papers/${paper.id}.json`) } }],
 	}}
@@ -39,9 +37,17 @@ const showAffNo = affiliations.length > 1;
 >
 	<article class="paper">
 		{
-			paper.authors && (
+			!isLatest && (
+				<p class="older">
+					This is version {current.v} of {paper.versions.length}, listed {formatDate(current.listed_at)}.{' '}
+					<a href={paperUrl()}>See the latest version (v{newest.v})</a>.
+				</p>
+			)
+		}
+		{
+			current.authors && (
 				<p class="authors">
-					{paper.authors.map((a, i) => (
+					{current.authors.map((a, i) => (
 						<>
 							{i > 0 && ', '}
 							{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}
@@ -60,11 +66,20 @@ const showAffNo = affiliations.length > 1;
 		}
 
 		<p class="facts">
-			<span>{paper.id}</span>
-			{paper.domain && <span>{paper.domain}</span>}
-			{paper.arxiv_id && <a href={`https://arxiv.org/abs/${paper.arxiv_id}`}>arXiv:{paper.arxiv_id}</a>}
+			<span>{isLatest ? paper.id : versionId(paper, current)}</span>
+			{current.domain && <span>{current.domain}</span>}
+			{current.arxiv_id && <a href={`https://arxiv.org/abs/${current.arxiv_id}`}>arXiv:{current.arxiv_id}</a>}
 			<a href={current.release_url}>Release {current.tag}</a>
 			<span>Listed {formatDate(firstListed(paper))}</span>
+			{
+				paper.versions.length > 1 && (
+					<span class="switch" aria-label="Versions">
+						{[...paper.versions].reverse().map((v) =>
+							v.v === current.v ? <strong aria-current="page">v{v.v}</strong> : <a href={paperUrl(v)}>v{v.v}</a>,
+						)}
+					</span>
+				)
+			}
 		</p>
 
 		<section class="open" aria-labelledby="open">
@@ -95,9 +110,9 @@ const showAffNo = affiliations.length > 1;
 		}
 
 		{
-			paper.tags && (
+			current.tags && (
 				<ul class="tags" aria-label="Tags">
-					{paper.tags.map((t) => <li>{t}</li>)}
+					{current.tags.map((t) => <li>{t}</li>)}
 				</ul>
 			)
 		}
@@ -105,14 +120,15 @@ const showAffNo = affiliations.length > 1;
 		{
 			paper.versions.length > 1 && (
 				<section aria-labelledby="versions">
-					<h2 id="versions">Versions</h2>
+					<h2 id="versions">Version history</h2>
 					<table>
 						<tbody>
 							{[...paper.versions].reverse().map((v) => (
-								<tr>
-									<td>{versionId(paper, v.v)}</td>
+								<tr aria-current={v.v === current.v ? 'page' : undefined}>
+									<td>{v.v === current.v ? <strong>{versionId(paper, v)}</strong> : <a href={paperUrl(v)}>{versionId(paper, v)}</a>}</td>
 									<td><a href={v.release_url}>{v.tag}</a></td>
 									<td>{formatDate(v.listed_at)}</td>
+									<td>{v.v === newest.v ? 'latest' : ''}</td>
 								</tr>
 							))}
 						</tbody>
@@ -126,6 +142,9 @@ const showAffNo = affiliations.length > 1;
 
 <style>
 	.paper { max-width: 46rem; }
+	.older { padding: 0.6rem 0.9rem; border-inline-start: 3px solid var(--sl-color-orange); background: var(--sl-color-orange-low); font-size: var(--sl-text-sm); }
+	.switch { display: inline-flex; gap: 0.5rem; }
+	.switch strong { color: var(--sl-color-white); }
 	.authors { font-size: var(--sl-text-lg); color: var(--sl-color-white); }
 	.authors sup { font-size: 0.65em; margin-inline-start: 0.1em; }
 	.affs { margin-top: 0.25rem; padding-inline-start: 1.1rem; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }

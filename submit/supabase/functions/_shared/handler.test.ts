@@ -14,7 +14,8 @@ Object.assign(process.env, {
 	SITE_URL: 'https://site.example',
 });
 
-// Fake GitHub: "good-user-token" is shoaibphysics, who can push to their own repo only.
+// Fake GitHub: "good-user-token" is shoaibphysics's token from the registry's OAuth App.
+// shoaibphysics can push to their own repo only.
 const calls: { method: string; url: string; auth: string; body?: any }[] = [];
 globalThis.fetch = (async (input: any, init: any = {}) => {
 	const url = String(input instanceof Request ? input.url : input);
@@ -24,7 +25,12 @@ globalThis.fetch = (async (input: any, init: any = {}) => {
 	calls.push({ method, url, auth, body });
 	const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 	const user = auth === 'token good-user-token';
-	if (url.endsWith('/user')) return user ? json({ login: 'shoaibphysics' }) : json({ message: 'Bad credentials' }, 401);
+	// Token check: only the registry's OAuth App (client Ov23test) knows good-user-token.
+	if (url.endsWith('/applications/Ov23test/token') && method === 'POST') {
+		const basic = `basic ${Buffer.from('Ov23test:secret').toString('base64')}`;
+		if (auth.toLowerCase() !== basic.toLowerCase()) return json({ message: 'Requires authentication' }, 401);
+		return body.access_token === 'good-user-token' ? json({ token: 'good-user-token', user: { login: 'shoaibphysics' }, scopes: [] }) : json({ message: 'Not Found' }, 404);
+	}
 	if (url.endsWith('/repos/shoaibphysics/blast-freezing-black-hole')) return json({ permissions: { push: user } });
 	if (url.endsWith('/repos/valbert4/two-fold-transversal')) return json({ permissions: { push: false } });
 	if (url.endsWith('/repos/LionSR/app-registry/installation')) return json({ id: 42 });
@@ -74,10 +80,12 @@ test('the terms must be accepted', async () => {
 	assert.equal((await post({ release_url: MINE, accept_terms: 'yes' })).status, 400);
 });
 
-test('rejects a missing or bad token before touching the registry', async () => {
+test("rejects a missing token, and any token not issued by the registry's OAuth App", async () => {
 	calls.length = 0;
 	assert.equal((await post({ release_url: MINE, accept_terms: true }, {})).status, 401);
-	assert.equal((await post({ release_url: MINE, accept_terms: true }, { authorization: 'Bearer nope' })).status, 401);
+	const other = await post({ release_url: MINE, accept_terms: true }, { authorization: 'Bearer gho_someOtherAppsToken' });
+	assert.equal(other.status, 401);
+	assert.match((await other.json()).error, /Other GitHub tokens are not accepted/);
 	assert.ok(!calls.some((c) => c.url.endsWith('/issues')));
 });
 

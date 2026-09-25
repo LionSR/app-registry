@@ -1,0 +1,12 @@
+---
+// /papers/<ID>/v<N>/: one specific version, citable as <ID>v<N>.
+import PaperPage from '../../../components/PaperPage.astro';
+import { allPapers, type Paper, type Version } from '../../../lib/papers';
+
+export async function getStaticPaths() {
+	return (await allPapers()).flatMap((paper) => paper.versions.map((version) => ({ params: { id: paper.id, version: `v${version.v}` }, props: { paper, version } })));
+}
+const { paper, version } = Astro.props as { paper: Paper; version: Version };
+---
+
+<PaperPage paper={paper} version={version} />

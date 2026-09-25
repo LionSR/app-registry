@@ -1,0 +1,16 @@
+---
+title: For agents
+description: How a coding agent submits a paper to the registry on a person's behalf.
+---
+
+import AgentSteps from '../../components/AgentSteps.astro';
+
+A coding agent submits exactly like a person on the [Submit page](../submit/): the person signs in with GitHub, and the agent sends one request. Because an agent has no browser, it uses GitHub's [device flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow). The token it gets is issued to the registry and lets it read only the person's GitHub username and whether they can write to the paper's repository. The registry accepts no other tokens.
+
+Before submitting, the person must agree to the [terms of use](../terms/).
+
+<AgentSteps />
+
+The reply to the last step names the submission issue. The checks and the review happen there: read the result with `gh issue view <number> --repo LionSR/app-registry --comments`. Each registry comment ends with a JSON block, marked `app-registry-status`, that states the outcome.
+
+To read the registry itself, use [`papers/index.json`](../papers/index.json) or [`llms.txt`](../llms.txt).

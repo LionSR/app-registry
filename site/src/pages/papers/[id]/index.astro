@@ -1,0 +1,12 @@
+---
+// /papers/<ID>/: the latest version. The bare ID always means the latest, as on arXiv.
+import PaperPage from '../../../components/PaperPage.astro';
+import { allPapers, latest, type Paper } from '../../../lib/papers';
+
+export async function getStaticPaths() {
+	return (await allPapers()).map((paper) => ({ params: { id: paper.id }, props: { paper } }));
+}
+const { paper } = Astro.props as { paper: Paper };
+---
+
+<PaperPage paper={paper} version={latest(paper)} />

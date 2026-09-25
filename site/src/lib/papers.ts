@@ -1,8 +1,9 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type Paper = CollectionEntry<'papers'>['data'];
+export type Version = Paper['versions'][number];
 
-export const latest = (p: Paper) => p.versions[p.versions.length - 1];
+export const latest = (p: Paper): Version => p.versions[p.versions.length - 1];
 export const firstListed = (p: Paper) => p.versions[0].listed_at;
 
 /** All papers, most recently listed first. */
@@ -11,5 +12,5 @@ export async function allPapers(): Promise<Paper[]> {
 	return entries.map((e) => e.data).sort((a, b) => b.id.localeCompare(a.id));
 }
 
-/** Public ID of one version, e.g. APP-260923-0000v2. Version 1 is the bare ID. */
-export const versionId = (p: Paper, v: number) => (v === 1 ? p.id : `${p.id}v${v}`);
+/** Citable ID of one version, e.g. APP-260923-0000v2. The bare ID always means the latest version. */
+export const versionId = (p: Paper, v: Version) => `${p.id}v${v.v}`;

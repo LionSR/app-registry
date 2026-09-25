@@ -1,15 +1,12 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { url } from '../lib/url';
-import { agentCommand } from '../lib/agent-command';
 
 // Set at build time. PUBLIC_SUBMIT_API is the function's base URL, e.g.
 // https://<project-ref>.supabase.co/functions/v1/registry. Without these the page says submissions are not configured.
 const api = import.meta.env.PUBLIC_SUBMIT_API ?? '';
 const clientId = import.meta.env.PUBLIC_OAUTH_CLIENT_ID ?? '';
 const configured = Boolean(api && clientId);
-// Filled in with the chosen release by the page script.
-const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/TAG');
 ---
 
 <StarlightPage
@@ -73,17 +70,7 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 			<li>An editor then approves the submission or explains what is missing. You can reply in the same issue.</li>
 		</ol>
 
-		<details class="agents">
-			<summary>Submit from an agent or a script</summary>
-			<p>
-				A coding agent can submit without a browser. The command below identifies you with your GitHub CLI login and
-				accepts the <a href={url('/terms/')}>terms of use</a> on your behalf, so run it only if you agree to them. If you
-				cannot write to the paper's repository, add <code>"authors_permission": true</code> to confirm you have the authors'
-				permission.
-			</p>
-			<pre><code id="agent-cmd">{agentCmd}</code></pre>
-			<button type="button" id="copy-cmd" class="secondary">Copy command</button>
-		</details>
+		<p class="agents">Submitting from a coding agent? See <a href={url('/agents/')}>For agents</a>: the agent signs you in with GitHub's device flow and sends the same request.</p>
 	</div>
 </StarlightPage>
 
@@ -94,8 +81,6 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 <style>
 	.submit { max-width: 40rem; }
 	.agents { margin-top: 2rem; }
-	.agents summary { cursor: pointer; font-weight: 600; }
-	.agents pre { white-space: pre-wrap; word-break: break-all; font-size: var(--sl-text-xs); padding: 0.75rem; border-radius: 0.35rem; background: var(--sl-color-gray-6); }
 	.card { display: grid; gap: 0.5rem; margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem; }
 	.card[hidden] { display: none; }
 	.card h2 { margin: 0; font-size: var(--sl-text-xl); }

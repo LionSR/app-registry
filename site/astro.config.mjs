@@ -33,6 +33,7 @@ export default defineConfig({
 			sidebar: [
 				{ label: 'About APP', slug: 'about' },
 				{ label: 'Publish your paper', slug: 'publish' },
+				{ label: 'For agents', slug: 'agents' },
 				{ label: 'Videos', slug: 'videos' },
 				{
 					label: 'Guides',

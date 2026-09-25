@@ -1,0 +1,38 @@
+---
+// Device-flow sign-in and submission for agents. Values come from the build so the commands are ready to run.
+import { Code, Steps } from '@astrojs/starlight/components';
+
+const api = import.meta.env.PUBLIC_SUBMIT_API || 'https://<submit-endpoint>';
+const clientId = import.meta.env.PUBLIC_OAUTH_CLIENT_ID || '<client-id>';
+const ask = `curl -s -X POST https://github.com/login/device/code \\
+  -H "Accept: application/json" -d client_id=${clientId}`;
+const exchange = `curl -s -X POST https://github.com/login/oauth/access_token \\
+  -H "Accept: application/json" -d client_id=${clientId} \\
+  -d device_code=DEVICE_CODE \\
+  -d grant_type=urn:ietf:params:oauth:grant-type:device_code`;
+const submit = `curl -s -X POST ${api}/submit \\
+  -H "Authorization: Bearer ACCESS_TOKEN" \\
+  -d '{"release_url": "https://github.com/OWNER/REPO/releases/tag/TAG", "accept_terms": true}'`;
+---
+
+<Steps>
+
+<ol>
+	<li>
+		<p>Ask GitHub for a sign-in code for the registry. The reply has a <code>device_code</code>, a <code>user_code</code> and an <code>interval</code> in seconds.</p>
+		<Code code={ask} lang="bash" />
+	</li>
+	<li>
+		<p>Ask the person to open <a href="https://github.com/login/device">github.com/login/device</a>, sign in, and enter the <code>user_code</code>. GitHub shows them that the registry asks for no access beyond their public profile.</p>
+	</li>
+	<li>
+		<p>Exchange the device code for a token. Repeat every <code>interval</code> seconds while the reply says <code>authorization_pending</code>, until it contains <code>access_token</code>.</p>
+		<Code code={exchange} lang="bash" />
+	</li>
+	<li>
+		<p>Submit the release. Send <code>"accept_terms": true</code> only if the person agrees to the terms of use. If they cannot write to the paper's repository, also send <code>"authors_permission": true</code>, and only if they confirm they have the authors' permission.</p>
+		<Code code={submit} lang="bash" />
+	</li>
+</ol>
+
+</Steps>

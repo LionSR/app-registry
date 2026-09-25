@@ -4,7 +4,6 @@
 // and the endpoint repeats every check that matters (write access, terms), so nothing here is trusted.
 import type { z } from 'zod';
 import { parseRepo, release } from '../../../submit/supabase/functions/_shared/submission.ts';
-import { agentCommand } from '../lib/agent-command';
 import { Failed, GitHubRelease, GitHubRepo, GitHubUser, Listing, Submitted } from './schemas';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -27,7 +26,6 @@ const permissionWhy = $('permission-why');
 const terms = $<HTMLInputElement>('terms');
 const statusBox = $('status');
 const send = $<HTMLButtonElement>('send');
-const agentCmd = $('agent-cmd');
 
 // sessionStorage can throw (private mode, blocked storage); the page still works without it.
 const TOKEN = 'app-registry-token';
@@ -119,10 +117,11 @@ function render() {
 	// Signed out: only the sign-in step. Signed in: only the form.
 	signinStep.hidden = Boolean(state.login);
 	form.hidden = !state.login;
-	const signinMessage = !state.configured ? 'Submissions are not configured on this build of the site.' : state.signinError;
+	const signinMessage = !state.configured ? 'Sign-in is temporarily unavailable, so submissions are paused. Please try again later.' : state.signinError;
 	signinStatus.hidden = !signinMessage;
 	signinStatus.dataset.tone = state.configured ? 'error' : 'warn';
 	signinStatus.textContent = signinMessage;
+	$('signin').hidden = !state.configured;
 	who.textContent = `Signed in as @${state.login}`;
 
 	permissionRow.hidden = !needsPermission(state);
@@ -132,11 +131,6 @@ function render() {
 	statusBox.dataset.tone = tone;
 	show(statusBox, say);
 	send.disabled = !ready || state.sending;
-	agentCmd.textContent = agentCommand(
-		api,
-		state.repo && state.tag ? release(state.repo.owner, state.repo.repo, state.tag).url : 'https://github.com/OWNER/REPO/releases/tag/TAG',
-		needsPermission(state),
-	);
 }
 
 const update = (patch: Partial<State>) => {
@@ -298,13 +292,6 @@ form.addEventListener('submit', async (e) => {
 	if (res.ok && sent.success) return update({ sending: false, sent: { url: sent.data.issue_url, number: sent.data.issue_number } });
 	const failed = Failed.safeParse(body);
 	update({ sending: false, sendError: failed.success ? failed.data.error : `The registry could not accept the submission (error ${res.status}). Try again in a minute.` });
-});
-
-$('copy-cmd').addEventListener('click', async (e) => {
-	const button = e.currentTarget as HTMLButtonElement;
-	await navigator.clipboard.writeText(agentCmd.textContent ?? '');
-	button.textContent = 'Copied';
-	setTimeout(() => (button.textContent = 'Copy command'), 1500);
 });
 
 loadAccount();

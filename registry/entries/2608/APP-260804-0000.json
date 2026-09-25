@@ -1,0 +1,31 @@
+{
+  "id": "APP-260804-0000",
+  "repo_url": "https://github.com/lcxlight/lk-anomalous-landau-levels",
+  "versions": [
+    {
+      "v": 1,
+      "tag": "v1.0.0",
+      "commit": "c3583a4ae414636cffa2d9e33546d5bc495ab095",
+      "app_publication_id": "app-v1:sha256:f3f5117c6953a6b7f9c392e9ebcf4be3540d532825632d7cd661069da8a7ba7f",
+      "release_url": "https://github.com/lcxlight/lk-anomalous-landau-levels/releases/tag/v1.0.0",
+      "listed_at": "2026-08-04",
+      "title": "Lifshitz--Kosevich Theory of Anomalous Landau Levels in Topological Flat Bands",
+      "authors": [
+        {
+          "name": "Chao-Xing Liu",
+          "affiliation": "Department of Physics, The Pennsylvania State University; Center for Theory of Emergent Quantum Matter, The Pennsylvania State University"
+        }
+      ],
+      "domain": "condensed-matter physics",
+      "tags": [
+        "topological flat bands",
+        "Landau levels",
+        "quantum oscillations",
+        "Lifshitz-Kosevich theory",
+        "quantum geometry",
+        "moire materials"
+      ],
+      "paper_summary": "This paper develops a Lifshitz--Kosevich description for quantum oscillations arising from anomalous Landau levels of topological flat bands. In contrast with ordinary dispersive bands, where the LK thermal damping scale is controlled by the cyclotron energy, the anomalous flat-band oscillations are controlled by the local Landau-level spacing at the chemical potential.\n\nUsing a minimal exactly flat topological-band model, the paper compares fixed-density magnetization oscillations in normal and anomalous regimes. The anomalous oscillations have finite but much larger and field-dependent LK effective masses. In the weak-field limit, the anomalous effective mass scales inversely with magnetic field and with the trace of the quantum metric, making thermal damping of flat-band quantum oscillations a probe of quantum geometry."
+    }
+  ]
+}

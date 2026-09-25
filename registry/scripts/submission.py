@@ -38,7 +38,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from registry import ENTRIES, ROOT, add, check_release, github_token, load_entries
+from registry import ROOT, add, check_release, entry_path, github_token, load_entries
 from review import compliance, fetch, read_review, review_prompt
 
 MARKER = "<!-- app-registry-submission -->"
@@ -208,7 +208,7 @@ def finalize(pending: dict[str, Any], review_text: str | None, today: dt.date) -
 
 def site_link(entry_id: str) -> str:
     base = os.environ.get("SITE_URL", "").rstrip("/")
-    return f"{base}/papers/{entry_id}/" if base else f"registry/entries/{entry_id}.json"
+    return f"{base}/papers/{entry_id}/" if base else str(entry_path(entry_id).relative_to(ROOT))
 
 
 @dataclass
@@ -240,12 +240,12 @@ def list_paper(sub: dict[str, Any], result: dict[str, Any], today: dt.date, acce
     entry, what = add(result["verified"], today)
     v = entry["versions"][-1]
     cite_id = entry["id"] if v["v"] == 1 else f"{entry['id']}v{v['v']}"
-    title = f"Add {entry['id']}: {entry['title']}" if what == "new" else f"Add {v['tag']} to {entry['id']}: {entry['title']}"
+    title = f"Add {entry['id']}: {v['title']}" if what == "new" else f"Add {v['tag']} to {entry['id']}: {v['title']}"
     return {
         "act": True,
         "state": "accepted",
         "close": "completed",
-        "entry_path": str((ENTRIES / f"{entry['id']}.json").relative_to(ROOT)),
+        "entry_path": str(entry_path(entry["id"]).relative_to(ROOT)),
         "commit_message": f"{title}\n\nAccepted by {accepted_by} in #{issue_number}.",
         "comment": f"### Listed as {cite_id}\n\n@{sub['submitter']}, your paper is now in the registry: {site_link(entry['id'])}\n\n"
         + (f"{checklist(result['checks'])}\n\n{note}\n\n" if note else "")

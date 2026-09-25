@@ -1,23 +1,21 @@
 # APP registry
 
-One JSON file per listed paper in `entries/<ID>.json`. There is no database; git history is the audit log.
+One JSON file per listed paper, grouped by month like arXiv: `entries/<YYMM>/<ID>.json`, for example `entries/2609/APP-260923-0000.json`. There is no database; git history is the audit log.
 
-## IDs
+## IDs and versions
 
-`APP-YYMMDD-NNNN`: the date the paper was first listed (UTC) and that day's sequence number from `0000`. A later release of the same repo is added to the entry's `versions`; version 2 is cited as `APP-YYMMDD-NNNNv2`.
+`APP-YYMMDD-NNNN`: the date the paper was first listed (UTC) and that day's sequence number from `0000`. A later release of the same repository is added to the entry's `versions`. As on arXiv, the bare ID means the latest version, and `APP-YYMMDD-NNNNv1`, `…v2` cite a specific one. IDs of removed listings are kept in `retired-ids.txt` and never given out again.
 
 ## Where each field comes from
 
-Everything is read from the paper repo at the verified tag and copied without rewording. Fields the repo does not provide are left out.
+Each version holds the paper's metadata as released at its own tag, copied without rewording. Fields the repository does not provide are left out.
 
 | Field | Source |
 |---|---|
 | `id`, `versions[].v`, `versions[].listed_at` | assigned by the registry |
 | `repo_url`, `versions[].tag`, `commit`, `app_publication_id`, `release_url` | the release's `APP_PUBLICATION.json`, checked against the real tag |
-| `title`, `authors`, `domain`, `arxiv_id`, `tags` | `AGENTS.md` frontmatter at the tag |
-| `paper_summary` | the `## Paper Summary` section of `AGENTS.md` at the tag |
-
-Top-level metadata reflects the newest listed version.
+| `versions[].title`, `authors`, `domain`, `arxiv_id`, `tags` | `AGENTS.md` frontmatter at that tag |
+| `versions[].paper_summary` | the `## Paper Summary` section of `AGENTS.md` at that tag |
 
 ## Scripts
 
