@@ -64,6 +64,22 @@ def status_block(state: str, checks: list[dict[str, Any]], entry_id: str | None 
     return "```json app-registry-status\n" + json.dumps(data, indent=2) + "\n```"
 
 
+def submitter_check(sub: dict[str, Any], verified: dict[str, Any]) -> dict[str, Any]:
+    """On what basis the submitter may submit. Write access was checked by the submit endpoint."""
+    who = f"@{sub['submitter']}"
+    repo = verified["owner_repo"]
+    handles = {(a.get("github") or "").lower() for a in verified.get("authors") or []} - {""}
+    if sub.get("write_access"):
+        return {"name": "submitter", "ok": True, "detail": f"{who} has write access to {repo}."}
+    if sub["submitter"].lower() in handles:
+        return {"name": "submitter", "ok": True, "detail": f"{who} is listed as an author in AGENTS.md."}
+    return {
+        "name": "submitter",
+        "ok": False,
+        "detail": f"{who} does not have write access to {repo} and says they have the authors' permission. An editor will confirm.",
+    }
+
+
 def run_checks(sub: dict[str, Any], token: str | None) -> dict[str, Any]:
     """Protocol checks, submitter identity, and duplicate listing."""
     verified = check_release(sub["release_url"], token)
@@ -78,19 +94,7 @@ def run_checks(sub: dict[str, Any], token: str | None) -> dict[str, Any]:
     ]
     listed_as = None
     if verified["ok"]:
-        submitter = sub["submitter"].lower()
-        owner = verified["owner_repo"].split("/")[0].lower()
-        handles = {(a.get("github") or "").lower() for a in verified.get("authors") or []} - {""}
-        known = submitter == owner or submitter in handles
-        checks.append(
-            {
-                "name": "submitter",
-                "ok": known,
-                "detail": f"@{sub['submitter']} owns the repository or is a listed author."
-                if known
-                else f"@{sub['submitter']} is not the repository owner or a listed author. An editor will confirm.",
-            }
-        )
+        checks.append(submitter_check(sub, verified))
         repo_url = f"https://github.com/{verified['owner_repo']}".lower()
         for e in load_entries():
             if e["repo_url"].lower() == repo_url and any(v["tag"] == verified["tag"] for v in e["versions"]):
@@ -106,7 +110,7 @@ def run_checks(sub: dict[str, Any], token: str | None) -> dict[str, Any]:
         # Nothing for an editor to confirm when the release is already listed.
         for c in checks:
             if c["name"] == "submitter" and not c["ok"]:
-                c["detail"] = f"@{sub['submitter']} is not the repository owner or a listed author."
+                c["detail"] = f"@{sub['submitter']} does not have write access to {verified['owner_repo']}."
     if not verified["ok"]:
         state = "checks-failed"
     elif listed_as:

@@ -1,8 +1,8 @@
 // Pure helpers for the submit endpoint. No network access, so they are unit-tested.
 
 export const MARKER = '<!-- app-registry-submission -->';
-export const RELATIONSHIPS = ['author', 'coauthor', 'on-behalf'] as const;
-export type Relationship = (typeof RELATIONSHIPS)[number];
+/** Version of the terms of use a submitter accepts; recorded in every submission. Bump when the terms change. */
+export const TERMS_VERSION = '2026-09-24';
 
 export interface Release {
 	owner: string;
@@ -41,20 +41,30 @@ export function parseRepo(input: string): { owner: string; repo: string; tag?: s
 	return m ? { owner: m[1], repo: m[2].replace(/\.git$/, ''), tag: m[3] ? decodeURIComponent(m[3]) : undefined } : null;
 }
 
-const RELATION_TEXT: Record<Relationship, string> = {
-	author: 'an author of the paper',
-	coauthor: 'a co-author of the paper',
-	'on-behalf': 'submitting on behalf of the authors',
-};
+/** Who submitted, and on what basis. Checked by the endpoint, recorded in the issue. */
+export interface Submitter {
+	login: string;
+	writeAccess: boolean; // GitHub reports push access to the paper repository
+	authorsPermission: boolean; // without write access: says they have the authors' permission
+}
 
 /** The issue the registry app opens. registry/scripts/submission.py parses the JSON block. */
-export function buildIssue(release: Release, submitter: string, relationship: Relationship) {
-	const data = { release_url: release.url, submitter, relationship };
+export function buildIssue(release: Release, submitter: Submitter) {
+	const data = {
+		release_url: release.url,
+		submitter: submitter.login,
+		write_access: submitter.writeAccess,
+		authors_permission: submitter.authorsPermission,
+		terms: TERMS_VERSION,
+	};
+	const basis = submitter.writeAccess
+		? `has write access to ${release.owner}/${release.repo}`
+		: `does not have write access to ${release.owner}/${release.repo} and confirms they have the authors' permission to submit it`;
 	return {
 		title: `Submit ${release.owner}/${release.repo}@${release.tag}`,
 		body: [
 			MARKER,
-			`@${submitter} submitted ${release.url} and is ${RELATION_TEXT[relationship]}.`,
+			`@${submitter.login} submitted ${release.url}, ${basis}, and accepted the registry's terms of use (version ${TERMS_VERSION}).`,
 			'',
 			'The registry checks the release and replies here. Reply in this issue to respond to a review. ' +
 				'The submitter can comment `/recheck` to run the checks again after fixing the release.',

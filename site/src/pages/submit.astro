@@ -6,7 +6,7 @@ import { agentCommand } from '../lib/agent-command';
 // Set at build time. PUBLIC_SUBMIT_API is the function's base URL, e.g.
 // https://<project-ref>.supabase.co/functions/v1/registry. Without these the page says submissions are not configured.
 const api = import.meta.env.PUBLIC_SUBMIT_API ?? '';
-const clientId = import.meta.env.PUBLIC_GITHUB_APP_CLIENT_ID ?? '';
+const clientId = import.meta.env.PUBLIC_OAUTH_CLIENT_ID ?? '';
 const configured = Boolean(api && clientId);
 // Filled in with the chosen release by the page script.
 const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/TAG');
@@ -16,20 +16,30 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 	frontmatter={{
 		title: 'Submit to the registry',
 		template: 'splash',
-		description: 'List your APP release on this site.',
+		description: 'Add a published APP release to the registry so readers can find it.',
 	}}
 >
 	<div class="submit" data-api={api} data-client-id={clientId}>
 		<p class="lede">
-			Submit a release you have already <a href={url('/publish/')}>published</a>. The registry checks that it is a verified APP
-			publication, and an editor lists it with a permanent ID. Your repository is not changed.
+			Add a paper you have already <a href={url('/publish/')}>published as an APP release</a> to this registry. After an editor
+			approves it, the paper appears in the list with a registry ID such as <code>APP-260923-0000</code>. Nothing in your
+			repository changes.
 		</p>
 
-		<form id="form" novalidate>
+		<section id="signin-step" class="card" aria-labelledby="signin-heading">
+			<h2 id="signin-heading">Sign in with GitHub</h2>
+			<p>
+				The registry uses your GitHub account to record who submitted the paper and to check whether you can write to its
+				repository. It asks for no other access, and the sign-in stays in this browser tab.
+			</p>
+			<button type="button" id="signin" disabled={!configured}>Sign in with GitHub</button>
+			<p id="signin-status" class="status" data-tone="error" role="alert" hidden></p>
+		</section>
+
+		<form id="form" class="card" novalidate hidden>
 			<div class="account">
-				<span id="who">Sign in with GitHub so the registry knows who is submitting.</span>
-				<button type="button" id="signin" class="secondary" disabled={!configured}>Sign in with GitHub</button>
-				<button type="button" id="signout" class="link" hidden>Sign out</button>
+				<span id="who"></span>
+				<button type="button" id="signout" class="link">Sign out</button>
 			</div>
 
 			<label for="repo">Repository</label>
@@ -43,29 +53,33 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 
 			<p id="preview" class="preview" hidden></p>
 
-			<fieldset>
-				<legend>Your relationship to the paper</legend>
-				<label><input type="radio" name="relationship" value="author" checked /> I am an author</label>
-				<label><input type="radio" name="relationship" value="coauthor" /> I am a co-author</label>
-				<label><input type="radio" name="relationship" value="on-behalf" /> I am submitting on behalf of the authors</label>
-			</fieldset>
+			<label id="permission-row" class="check" hidden>
+				<input type="checkbox" id="permission" />
+				<span>I have the authors' permission to submit this release. <span id="permission-why" class="hint"></span></span>
+			</label>
+			<label class="check">
+				<input type="checkbox" id="terms" />
+				<span>I agree to the <a href={url('/terms/')} target="_blank">terms of use</a>.</span>
+			</label>
 
 			<div id="status" class="status" data-tone="info" role="status" aria-live="polite"></div>
 			<button type="submit" id="send" disabled>Submit to the registry</button>
 		</form>
 
-		<h2>What happens next</h2>
+		<h2>After you submit</h2>
 		<ol>
-			<li>A submission issue opens in the registry repository, and you are mentioned in it.</li>
-			<li>The checks run within a minute and post the result there. If something fails, fix the release and comment <code>/recheck</code>.</li>
-			<li>An editor reviews the submission and lists it, or replies with a reason. Reply in the same issue to respond.</li>
+			<li>A submission issue opens in the registry's GitHub repository, and you are mentioned in it.</li>
+			<li>Within a minute, the registry checks the release and posts the result in the issue. If a check fails, fix the release and comment <code>/recheck</code>.</li>
+			<li>An editor then approves the submission or explains what is missing. You can reply in the same issue.</li>
 		</ol>
 
 		<details class="agents">
 			<summary>Submit from an agent or a script</summary>
 			<p>
-				Coding agents can submit the same way, with no browser. The request below uses your GitHub CLI login to say who is
-				submitting; nothing else is sent. You can also paste it to your agent and ask it to run it.
+				A coding agent can submit without a browser. The command below identifies you with your GitHub CLI login and
+				accepts the <a href={url('/terms/')}>terms of use</a> on your behalf, so run it only if you agree to them. If you
+				cannot write to the paper's repository, add <code>"authors_permission": true</code> to confirm you have the authors'
+				permission.
 			</p>
 			<pre><code id="agent-cmd">{agentCmd}</code></pre>
 			<button type="button" id="copy-cmd" class="secondary">Copy command</button>
@@ -82,14 +96,18 @@ const agentCmd = agentCommand(api, 'https://github.com/OWNER/REPO/releases/tag/T
 	.agents { margin-top: 2rem; }
 	.agents summary { cursor: pointer; font-weight: 600; }
 	.agents pre { white-space: pre-wrap; word-break: break-all; font-size: var(--sl-text-xs); padding: 0.75rem; border-radius: 0.35rem; background: var(--sl-color-gray-6); }
-	form { display: grid; gap: 0.5rem; margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem; }
+	.card { display: grid; gap: 0.5rem; margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem; }
+	.card[hidden] { display: none; }
+	.card h2 { margin: 0; font-size: var(--sl-text-xl); }
+	.card p { margin: 0; }
 	.account { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding-bottom: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--sl-color-hairline); }
-	label, legend { font-weight: 600; }
-	fieldset { border: 0; padding: 0; margin: 0.75rem 0 0.5rem; display: grid; gap: 0.35rem; }
-	fieldset label { font-weight: 400; display: flex; gap: 0.5rem; align-items: center; margin: 0; }
+	label { font-weight: 600; }
+	label.check { font-weight: 400; display: flex; gap: 0.6rem; align-items: baseline; margin-top: 0.5rem; }
+	label.check[hidden] { display: none; }
+	label.check .hint { display: block; }
 	.preview { margin: 0.25rem 0 0; padding: 0.6rem 0.8rem; font-family: var(--app-serif); font-size: var(--sl-text-lg); background: var(--sl-color-gray-6); border-radius: 0.35rem; }
 	.status { margin-top: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 0.4rem; border-inline-start: 3px solid; font-size: var(--sl-text-sm); line-height: 1.5; }
-	.status:empty { display: none; }
+	.status:empty, .status[hidden] { display: none; }
 	.status[data-tone='info'] { border-color: var(--sl-color-gray-4); background: var(--sl-color-gray-6); }
 	.status[data-tone='ok'] { border-color: var(--sl-color-green); background: var(--sl-color-green-low); }
 	.status[data-tone='warn'] { border-color: var(--sl-color-orange); background: var(--sl-color-orange-low); }

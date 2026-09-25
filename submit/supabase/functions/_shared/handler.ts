@@ -3,10 +3,12 @@
 //   GET  …/registry/auth/callback   GitHub redirects here after "Sign in with GitHub" on the site.
 //                                   Swaps the code for a user token and hands it back to the page in
 //                                   the URL fragment (never sent to a server, never logged).
-//   POST …/registry/submit          { release_url, relationship } with Authorization: Bearer <GitHub token>.
-//                                   The one way to submit, for the website and for agents alike. The
-//                                   token only proves who the caller is (GET /user); the issue itself is
-//                                   opened by the registry's GitHub App, so the review workflow can trust it.
+//   POST …/registry/submit          { release_url, accept_terms: true, authors_permission? }
+//                                   with Authorization: Bearer <GitHub token>. The one way to submit, for
+//                                   the website and for agents alike. The caller's token is used only to
+//                                   read who they are and whether they can push to the paper repository;
+//                                   the issue itself is opened by the registry's GitHub App, so the review
+//                                   workflow can trust what it records.
 //
 // Runs on Supabase Edge Functions (Deno) and under Node for tests.
 import process from 'node:process';
@@ -40,7 +42,7 @@ async function callback(request: Request, env: Env): Promise<Response> {
 
 	if (!code) return back({ error: url.searchParams.get('error_description') ?? 'Sign-in was cancelled.' });
 	try {
-		const { authentication } = await exchangeWebFlowCode({ clientType: 'github-app', clientId: env.GITHUB_APP_CLIENT_ID, clientSecret: env.GITHUB_APP_CLIENT_SECRET, code });
+		const { authentication } = await exchangeWebFlowCode({ clientType: 'oauth-app', clientId: env.OAUTH_CLIENT_ID, clientSecret: env.OAUTH_CLIENT_SECRET, code });
 		return back({ token: authentication.token });
 	} catch (err) {
 		// GitHub's reason (e.g. "The client_id and/or client_secret passed are incorrect.") is safe to show.
@@ -63,15 +65,30 @@ async function submit(request: Request, env: Env): Promise<Response> {
 	const body = SubmitBody.safeParse(await request.json().catch(() => undefined));
 	if (!body.success) {
 		const issue = body.error.issues[0];
-		return reply(400, { error: issue.path.length ? issue.message : 'Send a JSON body: {"release_url": "...", "relationship": "author"}.' });
+		return reply(400, { error: issue.path.length ? issue.message : 'Send a JSON body: {"release_url": "...", "accept_terms": true}.' });
 	}
-	const { release_url: release, relationship } = body.data;
+	const { release_url: release, authors_permission: authorsPermission } = body.data;
+	const asUser = { headers: { authorization: `token ${token.data}` } };
 
-	let submitter: string;
+	let login: string;
 	try {
-		({ data: { login: submitter } } = await github('GET /user', { headers: { authorization: `token ${token.data}` } }));
+		({ data: { login } } = await github('GET /user', asUser));
 	} catch {
 		return reply(401, { error: 'GitHub did not accept this token. Sign in again.' });
+	}
+
+	// Write access is read from GitHub with the submitter's own token, never taken from the caller.
+	let writeAccess = false;
+	try {
+		const { data } = await github('GET /repos/{owner}/{repo}', { owner: release.owner, repo: release.repo, ...asUser });
+		writeAccess = Boolean(data.permissions?.push);
+	} catch {
+		return reply(404, { error: `${release.owner}/${release.repo} was not found. The repository must be public.` });
+	}
+	if (!writeAccess && !authorsPermission) {
+		return reply(403, {
+			error: `@${login} does not have write access to ${release.owner}/${release.repo}. Submit from an account that does, or confirm you have the authors' permission (send "authors_permission": true).`,
+		});
 	}
 
 	const [owner, repo] = env.REGISTRY_REPO.split('/');
@@ -83,10 +100,10 @@ async function submit(request: Request, env: Env): Promise<Response> {
 		const { data: issue } = await github('POST /repos/{owner}/{repo}/issues', {
 			owner,
 			repo,
-			...buildIssue(release, submitter, relationship),
+			...buildIssue(release, { login, writeAccess, authorsPermission }),
 			headers: { authorization: `token ${botToken}` },
 		});
-		return reply(201, { issue_url: issue.html_url, issue_number: issue.number, submitter });
+		return reply(201, { issue_url: issue.html_url, issue_number: issue.number, submitter: login, write_access: writeAccess });
 	} catch {
 		return reply(502, { error: 'Could not open the submission on GitHub. Try again in a minute.' });
 	}

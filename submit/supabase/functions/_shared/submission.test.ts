@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildIssue, corsHeaders, MARKER, parseRelease, parseRepo } from './submission.ts';
+import { buildIssue, corsHeaders, MARKER, parseRelease, parseRepo, TERMS_VERSION } from './submission.ts';
 
 test('parseRelease accepts release URLs and owner/repo@tag', () => {
 	assert.deepEqual(parseRelease('https://github.com/shoaibphysics/blast-freezing-black-hole/releases/tag/v1.0.1'), {
@@ -21,11 +21,11 @@ test('parseRelease rejects anything that is not one release', () => {
 
 test('buildIssue writes the marker and a parseable JSON block', () => {
 	const r = parseRelease('owner/repo@v2.0.0')!;
-	const { title, body } = buildIssue(r, 'someone', 'on-behalf');
+	const { title, body } = buildIssue(r, { login: 'someone', writeAccess: false, authorsPermission: true });
 	assert.equal(title, 'Submit owner/repo@v2.0.0');
 	assert.ok(body.startsWith(MARKER));
 	const m = body.match(/```json app-registry-submission\n(.*?)\n```/s)!;
-	assert.deepEqual(JSON.parse(m[1]), { release_url: r.url, submitter: 'someone', relationship: 'on-behalf' });
+	assert.deepEqual(JSON.parse(m[1]), { release_url: r.url, submitter: 'someone', write_access: false, authors_permission: true, terms: TERMS_VERSION });
 });
 
 test('corsHeaders only allows the site origin', () => {

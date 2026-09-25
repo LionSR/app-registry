@@ -8,8 +8,9 @@ BOT = 'app-registry-submit[bot]'
 TOKEN = registry.github_token()
 TODAY = dt.date(2026, 9, 24)
 
-def issue(release, submitter, user=BOT, number=7):
-    body = f"{submission.MARKER}\n@{submitter} submitted {release}\n\n```json app-registry-submission\n" + json.dumps({"release_url": release, "submitter": submitter, "relationship": "author"}) + "\n```"
+def issue(release, submitter, user=BOT, number=7, write_access=True):
+    data = {"release_url": release, "submitter": submitter, "write_access": write_access, "authors_permission": not write_access, "terms": "2026-09-24"}
+    body = f"{submission.MARKER}\n@{submitter} submitted {release}\n\n```json app-registry-submission\n" + json.dumps(data) + "\n```"
     return {"number": number, "user": {"login": user}, "body": body}
 
 def ev_open(i): return ('issues', {"action": "opened", "issue": i})
@@ -35,7 +36,8 @@ registry.ENTRIES = submission.ENTRIES = tmp
 try:
     print("== against an empty registry ==")
     run("3 fresh release", ev_open(issue(GOOD, 'shoaibphysics')))
-    run("4 submitter not owner/author", ev_open(issue(GOOD, 'randomperson')))
+    run("4a no write access, listed author", ev_open(issue(GOOD, 'shoaibphysics', write_access=False)))
+    run("4b no write access, not an author", ev_open(issue(GOOD, 'randomperson', write_access=False)))
     run("5 bad tag", ev_open(issue(BAD, 'shoaibphysics')))
     i = issue(GOOD, 'shoaibphysics')
     run("6 /recheck by stranger", ev_comment(i, 'stranger', '/recheck'))

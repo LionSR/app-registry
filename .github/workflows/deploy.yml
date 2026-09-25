@@ -26,7 +26,7 @@ jobs:
       BASE_PATH: ${{ vars.BASE_PATH }}
       NOINDEX: ${{ vars.NOINDEX }}
       PUBLIC_SUBMIT_API: ${{ vars.PUBLIC_SUBMIT_API }}
-      PUBLIC_GITHUB_APP_CLIENT_ID: ${{ vars.PUBLIC_GITHUB_APP_CLIENT_ID }}
+      PUBLIC_OAUTH_CLIENT_ID: ${{ vars.PUBLIC_OAUTH_CLIENT_ID }}
     steps:
       - uses: actions/checkout@v7
         with:

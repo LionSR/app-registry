@@ -8,6 +8,8 @@ export const GitHubRepo = z.object({
 	private: z.boolean(),
 	fork: z.boolean(),
 	parent: z.object({ full_name: z.string() }).optional(),
+	// Present when signed in; `push` is whether this account can write to the repository.
+	permissions: z.object({ push: z.boolean() }).optional(),
 });
 
 export const GitHubRelease = z.object({

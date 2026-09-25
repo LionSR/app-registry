@@ -1,6 +1,7 @@
-// The submit page: GitHub sign-in, repository and release pickers, and one status box
-// above the Submit button that always says what can happen next.
-// Parsing is shared with the submit endpoint so both accept exactly the same input.
+// The submit page: sign in with GitHub, choose the repository and release, confirm, submit.
+// One status box above the Submit button always says what can happen next.
+// Parsing is shared with the submit endpoint so both accept exactly the same input,
+// and the endpoint repeats every check that matters (write access, terms), so nothing here is trusted.
 import type { z } from 'zod';
 import { parseRepo, release } from '../../../submit/supabase/functions/_shared/submission.ts';
 import { agentCommand } from '../lib/agent-command';
@@ -12,12 +13,18 @@ const api = root.dataset.api!;
 const clientId = root.dataset.clientId!;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+const signinStep = $('signin-step');
+const signinStatus = $('signin-status');
 const form = $<HTMLFormElement>('form');
 const who = $('who');
 const repoInput = $<HTMLInputElement>('repo');
 const suggestions = $('repo-suggestions');
 const tagSelect = $<HTMLSelectElement>('tag');
 const preview = $('preview');
+const permissionRow = $('permission-row');
+const permission = $<HTMLInputElement>('permission');
+const permissionWhy = $('permission-why');
+const terms = $<HTMLInputElement>('terms');
 const statusBox = $('status');
 const send = $<HTMLButtonElement>('send');
 const agentCmd = $('agent-cmd');
@@ -53,10 +60,13 @@ const state = {
 	lookup: 'idle' as 'idle' | 'loading' | 'not-found' | 'rate-limited' | 'failed' | 'done',
 	eligible: 0, // releases carrying APP_PUBLICATION.json
 	forkOf: '',
+	canWrite: false, // GitHub reports push access for the signed-in account
 	tag: '',
 	listedAs: '', // registry ID if this repository is already listed
 	tagListed: false,
 	agentsMd: 'unknown' as 'unknown' | 'found' | 'missing',
+	authorsPermission: false,
+	termsAccepted: false,
 	sending: false,
 	sent: null as { url: string; number: number } | null,
 	sendError: '',
@@ -69,35 +79,33 @@ type Part = string | { text: string; href: string } | { text: string; onClick: (
 type Status = { tone: 'info' | 'ok' | 'warn' | 'error'; say: Part[]; ready?: boolean };
 const name = (s: State) => (s.repo ? `${s.repo.owner}/${s.repo.repo}` : '');
 const what = (s: State) => (s.listedAs ? `a new version of ${s.listedAs}` : 'a new paper');
+const needsPermission = (s: State) => s.lookup === 'done' && s.eligible > 0 && !s.tagListed && !s.canWrite && !s.sent;
 
 const RULES: [when: (s: State) => boolean, status: (s: State) => Status][] = [
-	[(s) => !s.configured, () => ({ tone: 'warn', say: ['Submissions are not configured on this build of the site.'] })],
-	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted to the registry. Follow the checks and the review in ', { text: `issue #${s.sent!.number}`, href: s.sent!.url }, '. You are mentioned there and can reply.'] })],
+	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted. The checks and the review happen in ', { text: `issue #${s.sent!.number}`, href: s.sent!.url }, ', where you are mentioned and can reply.'] })],
 	[(s) => s.sending, () => ({ tone: 'info', say: ['Submitting…'] })],
-	[(s) => Boolean(s.signinError), (s) => ({ tone: 'error', say: [s.signinError] })],
-	[(s) => !s.repo, (s) => ({ tone: 'info', say: [s.login ? 'Choose the repository of your paper.' : 'Sign in with GitHub, then choose the repository of your paper.'] })],
+	[(s) => !s.repo, () => ({ tone: 'info', say: ['Choose the repository of your paper.'] })],
 	[(s) => s.lookup === 'loading', (s) => ({ tone: 'info', say: [`Looking up ${name(s)}…`] })],
 	[(s) => s.lookup === 'not-found', (s) => ({ tone: 'error', say: [`${name(s)} was not found. The repository must exist and be public. Check the spelling, or paste its GitHub URL.`] })],
-	[(s) => s.lookup === 'rate-limited', (s) => ({ tone: 'error', say: ['GitHub is limiting requests from this browser. ', s.login ? 'Wait a minute and try again.' : 'Sign in with GitHub to raise the limit, or wait a minute.'] })],
+	[(s) => s.lookup === 'rate-limited', () => ({ tone: 'error', say: ['GitHub is limiting requests from this browser. Wait a minute and try again.'] })],
 	[(s) => s.lookup === 'failed', (s) => ({ tone: 'error', say: [`GitHub could not be reached for ${name(s)}. Try again in a minute.`] })],
 	[
 		(s) => !s.eligible && Boolean(s.forkOf),
-		(s) => ({ tone: 'warn', say: [`${name(s)} is a fork of ${s.forkOf} and has no release to submit. The publication is usually in the original repository. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
+		(s) => ({ tone: 'warn', say: [`${name(s)} is a fork of ${s.forkOf} and has no release to submit. The paper is usually released from the original repository. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
 	],
-	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no release with an APP_PUBLICATION.json file, so there is nothing to submit yet. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '. The publishing skill creates the release and the file.'] })],
-	[(s) => s.tagListed, (s) => ({ tone: 'info', say: [`This release is already in the registry as ${s.listedAs}. There is nothing to submit. `, { text: 'View the paper', href: `${BASE}/papers/${s.listedAs}/` }, '.'] })],
-	[(s) => !s.login, () => ({ tone: 'info', say: ['Sign in with GitHub to submit this release.'] })],
+	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no release with an APP_PUBLICATION.json file, so there is nothing to submit yet. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '.'] })],
+	[(s) => s.tagListed, (s) => ({ tone: 'info', say: [`This release is already in the registry as ${s.listedAs}. `, { text: 'View the paper', href: `${BASE}/papers/${s.listedAs}/` }, '.'] })],
+	[(s) => needsPermission(s) && !s.authorsPermission, (s) => ({ tone: 'warn', say: [`@${s.login} cannot write to ${name(s)}. Sign in with an account that can, or confirm above that you have the authors' permission.`] })],
+	[(s) => !s.termsAccepted, () => ({ tone: 'info', say: ['Agree to the terms of use to submit.'] })],
 	// From here on the release can be submitted; a failed attempt can be retried.
 	[(s) => Boolean(s.sendError), (s) => ({ tone: 'error', say: [s.sendError], ready: true })],
-	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit ${name(s)}@${s.tag} as ${what(s)}. No AGENTS.md was found at this tag, so the checks will likely fail.`], ready: true })],
+	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit ${name(s)}@${s.tag} as ${what(s)}. There is no AGENTS.md at this tag, so the checks will likely fail.`], ready: true })],
 	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit ${name(s)}@${s.tag} as ${what(s)}.`], ready: true })],
 ];
 
-function render() {
-	const { tone, say, ready = false } = RULES.find(([when]) => when(state))![1](state);
-	statusBox.dataset.tone = tone;
-	statusBox.replaceChildren(
-		...say.map((p) => {
+function show(el: HTMLElement, parts: Part[]) {
+	el.replaceChildren(
+		...parts.map((p) => {
 			if (typeof p === 'string') return document.createTextNode(p);
 			if ('href' in p) return Object.assign(document.createElement('a'), { href: p.href, textContent: p.text });
 			const button = Object.assign(document.createElement('button'), { type: 'button', className: 'link', textContent: p.text });
@@ -105,11 +113,30 @@ function render() {
 			return button;
 		}),
 	);
+}
+
+function render() {
+	// Signed out: only the sign-in step. Signed in: only the form.
+	signinStep.hidden = Boolean(state.login);
+	form.hidden = !state.login;
+	const signinMessage = !state.configured ? 'Submissions are not configured on this build of the site.' : state.signinError;
+	signinStatus.hidden = !signinMessage;
+	signinStatus.dataset.tone = state.configured ? 'error' : 'warn';
+	signinStatus.textContent = signinMessage;
+	who.textContent = `Signed in as @${state.login}`;
+
+	permissionRow.hidden = !needsPermission(state);
+	permissionWhy.textContent = `@${state.login} cannot write to ${name(state)}, so an editor will confirm this with the authors.`;
+
+	const { tone, say, ready = false } = RULES.find(([when]) => when(state))![1](state);
+	statusBox.dataset.tone = tone;
+	show(statusBox, say);
 	send.disabled = !ready || state.sending;
-	who.textContent = state.login ? `Signed in as @${state.login}` : 'Sign in with GitHub so the registry knows who is submitting.';
-	$('signin').hidden = Boolean(state.login);
-	$('signout').hidden = !state.login;
-	agentCmd.textContent = agentCommand(api, state.repo && state.tag ? release(state.repo.owner, state.repo.repo, state.tag).url : 'https://github.com/OWNER/REPO/releases/tag/TAG');
+	agentCmd.textContent = agentCommand(
+		api,
+		state.repo && state.tag ? release(state.repo.owner, state.repo.repo, state.tag).url : 'https://github.com/OWNER/REPO/releases/tag/TAG',
+		needsPermission(state),
+	);
 }
 
 const update = (patch: Partial<State>) => {
@@ -151,7 +178,7 @@ $('signout').addEventListener('click', () => {
 	location.reload();
 });
 
-// ---- Repository and release pickers (public GitHub data; the token only raises rate limits) ----
+// ---- Repository and release pickers (public GitHub data read with the signed-in account) ----
 
 let listing: z.infer<typeof Listing> = [];
 const listingReady = getJson(`${BASE}/papers/index.json`, Listing).then((r) => r.ok && (listing = r.data));
@@ -192,14 +219,15 @@ async function loadReleases() {
 	current = key;
 	tagSelect.disabled = true;
 	preview.hidden = true;
-	const reset = { repo: r, sent: null, sendError: '', eligible: 0, forkOf: '', tag: '', listedAs: '', tagListed: false, agentsMd: 'unknown' } as const;
+	permission.checked = false;
+	const reset = { repo: r, sent: null, sendError: '', eligible: 0, forkOf: '', canWrite: false, tag: '', listedAs: '', tagListed: false, agentsMd: 'unknown', authorsPermission: false } as const;
 	if (!r) {
 		setOptions([{ text: 'Choose a repository first' }]);
 		return update({ ...reset, lookup: 'idle' });
 	}
 	update({ ...reset, lookup: 'loading' });
 
-	const found = await gh(`/repos/${r.owner}/${r.repo}/releases?per_page=100`, GitHubRelease.array());
+	const [found, meta] = await Promise.all([gh(`/repos/${r.owner}/${r.repo}/releases?per_page=100`, GitHubRelease.array()), gh(`/repos/${r.owner}/${r.repo}`, GitHubRepo)]);
 	if (current !== key) return;
 	if (!found.ok) {
 		setOptions([{ text: 'No releases' }]);
@@ -207,19 +235,17 @@ async function loadReleases() {
 	}
 	const releases = found.data.filter((x) => !x.draft);
 	const eligible = releases.filter((x) => x.assets.some((a) => a.name === 'APP_PUBLICATION.json')).map((x) => x.tag_name);
+	const repoInfo = meta.ok ? meta.data : null;
+	const facts = { eligible: eligible.length, canWrite: Boolean(repoInfo?.permissions?.push), forkOf: repoInfo?.fork ? (repoInfo.parent?.full_name ?? '') : '' };
 
 	if (!eligible.length) {
 		setOptions([{ text: releases.length ? 'No release can be submitted yet' : 'No releases yet' }]);
-		// A fork rarely carries the publication; offer the repository it was forked from.
-		const meta = await gh(`/repos/${r.owner}/${r.repo}`, GitHubRepo);
-		if (current !== key) return;
-		return update({ lookup: 'done', eligible: 0, forkOf: meta.ok && meta.data.fork ? (meta.data.parent?.full_name ?? '') : '' });
+		return update({ ...facts, lookup: 'done' });
 	}
 	setOptions(releases.map((x) => (eligible.includes(x.tag_name) ? { value: x.tag_name, text: x.tag_name } : { value: x.tag_name, text: `${x.tag_name} (no APP_PUBLICATION.json)`, disabled: true })));
 	tagSelect.disabled = false;
 	tagSelect.value = r.tag && eligible.includes(r.tag) ? r.tag : eligible[0];
-	state.lookup = 'done';
-	state.eligible = eligible.length;
+	Object.assign(state, facts, { lookup: 'done' });
 	selectRelease();
 }
 
@@ -247,6 +273,8 @@ async function selectRelease() {
 
 repoInput.addEventListener('input', loadReleases);
 tagSelect.addEventListener('change', selectRelease);
+permission.addEventListener('change', () => update({ authorsPermission: permission.checked, sendError: '' }));
+terms.addEventListener('change', () => update({ termsAccepted: terms.checked, sendError: '' }));
 
 // ---- Submit ----
 
@@ -258,7 +286,7 @@ form.addEventListener('submit', async (e) => {
 	const res = await fetch(`${api}/submit`, {
 		method: 'POST',
 		headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-		body: JSON.stringify({ release_url: release(state.repo.owner, state.repo.repo, state.tag).url, relationship: new FormData(form).get('relationship') }),
+		body: JSON.stringify({ release_url: release(state.repo.owner, state.repo.repo, state.tag).url, accept_terms: state.termsAccepted, authors_permission: state.authorsPermission }),
 	}).catch(() => null);
 	const body = await res?.json().catch(() => undefined);
 	if (!res) return update({ sending: false, sendError: 'The registry could not be reached. Check your connection and try again.' });

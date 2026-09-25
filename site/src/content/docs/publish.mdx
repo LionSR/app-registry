@@ -1,31 +1,24 @@
 ---
 title: Publish your paper
-description: Turn a finished paper into an APP publication and get it listed.
+description: Publish a finished paper as an APP release in your own GitHub repository, then submit it to the registry.
 ---
 
 import { Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 
-Getting your paper onto this site takes two separate steps.
+A paper reaches this site in two steps. First you **publish** it: the APP skills turn your working folder into a GitHub release that any coding agent can open. That release is the publication, and it stays in your own repository. Then you **submit** the release to the registry, so readers can find it here.
 
-|  | 1. Publish | 2. Submit to the registry |
-|---|---|---|
-| What you get | An APP publication: a tagged GitHub release of your paper repository that any agent can open | A listing on this site with a permanent ID such as `APP-260923-0000` |
-| Where it lives | Your own GitHub repository | This registry |
-| How | Run the `publish-paper` skill in your coding agent | [Submit](../submit/) the link to your release |
-| Required? | Yes. This is the publication. | No. It makes your paper easy to find. |
-
-Publishing never depends on the registry. Your release is a complete APP publication whether or not it is listed here, and listing it does not change your repository.
+These instructions follow the [APP protocol repository's README](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update), which also covers updating and manual installation.
 
 ## 1. Publish
 
-Turn a finished paper into an APP publication in your own GitHub repository. Nothing is released without your approval.
-
 <Steps>
 
-1. Install the APP plugin in your coding agent.
+1. Install Claude Code or Codex, then add the APP plugin to it. APP runs inside the agent; it is not a separate program.
 
    <Tabs syncKey="agent">
    <TabItem label="Claude Code">
+
+   Type these at the Claude Code prompt, inside a running session (start one with `claude`), not in your shell:
 
    ```text
    /plugin marketplace add LionSR/AgenticPublicationProtocol
@@ -34,7 +27,16 @@ Turn a finished paper into an APP publication in your own GitHub repository. Not
    ```
 
    </TabItem>
-   <TabItem label="Codex">
+   <TabItem label="Codex app">
+
+   1. Open **Plugins** and click **Add → Add marketplace**.
+   2. Enter `LionSR/AgenticPublicationProtocol` as the source, leave Git ref and Sparse paths empty, and click **Add marketplace**.
+   3. Search the plugin list for `paper-protocol` and switch it on.
+
+   </TabItem>
+   <TabItem label="Codex in a terminal">
+
+   Run these in your shell, not inside Codex:
 
    ```bash
    codex plugin marketplace add LionSR/AgenticPublicationProtocol
@@ -44,7 +46,7 @@ Turn a finished paper into an APP publication in your own GitHub repository. Not
    </TabItem>
    </Tabs>
 
-2. Open the folder with your paper, code and data, and run the publishing skill. It walks you through reproducing results, organizing the repository, writing `AGENTS.md`, validating, and releasing.
+2. Open the folder that holds your paper, code and data in the agent, and start the publishing workflow.
 
    <Tabs syncKey="agent">
    <TabItem label="Claude Code">
@@ -54,7 +56,14 @@ Turn a finished paper into an APP publication in your own GitHub repository. Not
    ```
 
    </TabItem>
-   <TabItem label="Codex">
+   <TabItem label="Codex app">
+
+   ```text
+   $publish-paper
+   ```
+
+   </TabItem>
+   <TabItem label="Codex in a terminal">
 
    ```text
    $publish-paper
@@ -63,10 +72,12 @@ Turn a finished paper into an APP publication in your own GitHub repository. Not
    </TabItem>
    </Tabs>
 
+   The workflow reproduces or checks your results, organizes the repository, drafts `AGENTS.md` with you, validates everything, and creates the GitHub release. It asks for your approval at each checkpoint and can span several sessions. To let the agent create the release itself, it needs access to your GitHub account; otherwise it tells you which commands to run.
+
 </Steps>
 
-When the skill finishes, your repository has a GitHub release with an `APP_PUBLICATION.json` file attached. That release is your publication. [Read the full publishing guide](../guides/publish/).
+The result is a GitHub release of your repository with an `APP_PUBLICATION.json` file attached. That release is a complete APP publication, whether or not it is listed here. [More on publishing](../guides/publish/).
 
 ## 2. Submit to the registry
 
-[Submit your release](../submit/) with its GitHub link. The registry checks that it is a verified APP publication, and an editor lists it here with a permanent ID. You can follow and reply to the review on GitHub.
+[Submit your release](../submit/) by choosing its repository and tag. The registry checks the release, an editor approves it, and the paper then appears on this site with a registry ID such as `APP-260923-0000`. Submitting does not change your repository.

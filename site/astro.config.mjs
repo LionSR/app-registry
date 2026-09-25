@@ -47,7 +47,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Reference',
-					items: ['reference/skills'],
+					items: ['reference/skills', 'terms'],
 				},
 			],
 		}),
