@@ -43,6 +43,7 @@ const configured = Boolean(api && clientId);
 			<input id="repo" class="field" name="repo" required autocomplete="off" list="repo-suggestions" placeholder="owner/paper-repo" />
 			<datalist id="repo-suggestions"></datalist>
 			<p class="hint">A public GitHub repository. Type <code>owner/</code> to choose from its repositories, or paste a URL.</p>
+			<p id="access" class="hint access" hidden></p>
 
 			<label for="tag">Release</label>
 			<select id="tag" class="field" name="tag" disabled><option>Choose a repository first</option></select>

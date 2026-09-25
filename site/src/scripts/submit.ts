@@ -20,6 +20,7 @@ const repoInput = $<HTMLInputElement>('repo');
 const suggestions = $('repo-suggestions');
 const tagSelect = $<HTMLSelectElement>('tag');
 const preview = $('preview');
+const access = $('access');
 const permissionRow = $('permission-row');
 const permission = $<HTMLInputElement>('permission');
 const permissionWhy = $('permission-why');
@@ -124,6 +125,9 @@ function render() {
 	$('signin').hidden = !state.configured;
 	who.textContent = `Signed in as @${state.login}`;
 
+	// What GitHub reports about the signed-in account's access to the chosen repository.
+	access.hidden = !(state.login && state.lookup === 'done');
+	access.textContent = state.canWrite ? `✓ @${state.login} can write to this repository.` : `@${state.login} cannot write to this repository.`;
 	permissionRow.hidden = !needsPermission(state);
 	permissionWhy.textContent = `@${state.login} cannot write to ${name(state)}, so an editor will confirm this with the authors.`;
 
