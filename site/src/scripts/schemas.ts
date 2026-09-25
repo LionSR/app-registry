@@ -18,6 +18,15 @@ export const GitHubRelease = z.object({
 	assets: z.array(z.object({ name: z.string() })),
 });
 
+/** Public repositories the signed-in user contributed to (GraphQL), for suggestions. */
+export const ContributedRepos = z.object({
+	data: z.object({
+		viewer: z.object({
+			repositoriesContributedTo: z.object({ nodes: z.array(z.object({ nameWithOwner: z.string(), isFork: z.boolean() }).nullable()) }),
+		}),
+	}),
+});
+
 /** The registry's own listing, /papers/index.json. */
 export const Listing = z.array(z.object({ id: z.string(), repo_url: z.string(), versions: z.array(z.object({ tag: z.string() })) }));
 

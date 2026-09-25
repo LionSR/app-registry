@@ -4,7 +4,7 @@
 // and the endpoint repeats every check that matters (write access, terms), so nothing here is trusted.
 import type { z } from 'zod';
 import { parseRepo, release } from '../../../submit/supabase/functions/_shared/submission.ts';
-import { Failed, GitHubRelease, GitHubRepo, GitHubUser, Listing, Submitted } from './schemas';
+import { ContributedRepos, Failed, GitHubRelease, GitHubRepo, GitHubUser, Listing, Submitted } from './schemas';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 const root = document.querySelector<HTMLElement>('.submit')!;
@@ -159,6 +159,7 @@ async function loadAccount() {
 	}
 	update({ login: user.data.login, signinError: '' });
 	suggestRepos(user.data.login);
+	suggestContributed();
 }
 
 $('signin').addEventListener('click', () => {
@@ -177,13 +178,27 @@ $('signout').addEventListener('click', () => {
 let listing: z.infer<typeof Listing> = [];
 const listingReady = getJson(`${BASE}/papers/index.json`, Listing).then((r) => r.ok && (listing = r.data));
 
+// Suggestions: an owner's public repositories (forks labelled), and, once signed in, the public
+// repositories the user contributed to, which covers papers they co-author in someone else's repository.
 const suggested = new Set<string>();
+function suggest(fullName: string, fork: boolean) {
+	if (suggested.has(fullName.toLowerCase())) return;
+	suggested.add(fullName.toLowerCase());
+	suggestions.append(Object.assign(document.createElement('option'), { value: fullName, label: fork ? `${fullName} (fork)` : fullName }));
+}
+const listedOwners = new Set<string>();
 async function suggestRepos(owner: string) {
-	if (suggested.has(owner.toLowerCase())) return;
-	suggested.add(owner.toLowerCase());
+	if (listedOwners.has(owner.toLowerCase())) return;
+	listedOwners.add(owner.toLowerCase());
 	const repos = await gh(`/users/${encodeURIComponent(owner)}/repos?per_page=100&sort=updated&type=owner`, GitHubRepo.array());
-	if (!repos.ok) return;
-	for (const r of repos.data.filter((r) => !r.private && !r.fork)) suggestions.append(Object.assign(document.createElement('option'), { value: r.full_name }));
+	if (repos.ok) for (const r of repos.data.filter((r) => !r.private)) suggest(r.full_name, r.fork);
+}
+async function suggestContributed() {
+	const token = store.get(TOKEN);
+	if (!token) return;
+	const query = '{ viewer { repositoriesContributedTo(first: 100, privacy: PUBLIC, includeUserRepositories: false, contributionTypes: [COMMIT, PULL_REQUEST, REPOSITORY]) { nodes { nameWithOwner isFork } } } }';
+	const res = await getJson('https://api.github.com/graphql', ContributedRepos, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ query }) });
+	if (res.ok) for (const r of res.data.data.viewer.repositoriesContributedTo.nodes) if (r) suggest(r.nameWithOwner, r.isFork);
 }
 
 function setOptions(options: { value?: string; text: string; disabled?: boolean }[]) {
