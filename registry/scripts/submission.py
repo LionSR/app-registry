@@ -174,7 +174,7 @@ def plan_for_checks(sub: dict[str, Any], result: dict[str, Any], ctx: dict[str, 
     next_step = {
         "checks-failed": f"{who}, fix the release and comment `/recheck` to run the checks again. "
         "The protocol explains each requirement: https://github.com/LionSR/AgenticPublicationProtocol/blob/main/PROTOCOL.md",
-        "awaiting-editor": "The release is valid, but an editor needs to look at the points marked ⚠️ before listing it. The editor will comment `/accept` or explain what is missing.",
+        "awaiting-editor": f"The release is valid. An editor will look at the points marked ⚠️ and reply here.\n\n{EDITOR_GUIDE}",
         "already-listed": f"Nothing to do: this release is already listed as {result['listed_as']}.",
     }[state]
     comment = f"### Submission checks\n\n{checklist(result['checks'])}\n\n{next_step}\n\n{status_block(state, result['checks'])}"
@@ -200,10 +200,24 @@ def finalize(pending: dict[str, Any], review_text: str | None, today: dt.date) -
         return list_paper(sub, {**result, "checks": checks}, today, "the automatic checks", pending["issue_number"], note)
     comment = (
         f"### Submission checks\n\n{checklist(checks)}\n\n"
-        "The release is valid. Because of the automatic review's points above, an editor will look at it before listing. "
-        "The editor will comment `/accept` or explain what is missing.\n\n" + status_block("awaiting-editor", checks)
+        "The release is valid. An editor will look at the points marked ⚠️ and reply here.\n\n"
+        f"{EDITOR_GUIDE}\n\n" + status_block("awaiting-editor", checks)
     )
     return {"act": True, "state": "awaiting-editor", "comment": comment}
+
+
+# Shown whenever a submission waits for an editor, so the next step is never a guess.
+EDITOR_GUIDE = (
+    "#### For editors\n\n"
+    "Everything marked ✅ is already checked. Look only at the points marked ⚠️, and open the release to judge:\n\n"
+    "- Is it a genuine scholarly work, not spam, a test, or a placeholder?\n"
+    "- Is the content appropriate, and does the summary match the paper?\n"
+    "- If the submitter cannot write to the repository: does their permission from the authors look plausible? Ask them here if unsure.\n\n"
+    "Then comment one of:\n\n"
+    "- `/accept` to list the paper now;\n"
+    "- `/decline <reason>` to decline, with a reason the submitter will read;\n"
+    "- or an ordinary comment to ask the submitter something. They can reply, or fix the release and comment `/recheck`."
+)
 
 
 def site_link(entry_id: str) -> str:
