@@ -192,7 +192,7 @@ def finalize(pending: dict[str, Any], review_text: str | None, today: dt.date) -
         {
             "name": "ai-review",
             "ok": not review["flag"],
-            "detail": "The automatic review found nothing for an editor to check." if not review["flag"] else "The automatic review asks an editor to look: " + " ".join(review["reasons"]),
+            "detail": "The automatic review found nothing for an editor to check." if not review["flag"] else "The automatic review asks an editor to look: " + "; ".join(r.rstrip(".") for r in review["reasons"]) + ".",
         }
     ]
     if not review["flag"]:
