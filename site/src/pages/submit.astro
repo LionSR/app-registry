@@ -5,7 +5,7 @@ import { url } from '../lib/url';
 // Set at build time. PUBLIC_SUBMIT_API is the function's base URL, e.g.
 // https://<project-ref>.supabase.co/functions/v1/registry. Without these the page says submissions are not configured.
 const api = import.meta.env.PUBLIC_SUBMIT_API ?? '';
-const clientId = import.meta.env.PUBLIC_OAUTH_CLIENT_ID ?? '';
+const clientId = import.meta.env.PUBLIC_GITHUB_APP_CLIENT_ID ?? '';
 const configured = Boolean(api && clientId);
 ---
 

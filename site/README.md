@@ -19,6 +19,6 @@ Build settings come from the environment (the deploy workflow sets them from rep
 | `SITE_ORIGIN`, `BASE_PATH` | where the site is served, e.g. `https://sirui-lu.com` and `/app-registry` |
 | `NOINDEX` | `true` asks search engines not to index the site |
 | `PUBLIC_SUBMIT_API` | the submit endpoint's base URL |
-| `PUBLIC_OAUTH_CLIENT_ID` | the OAuth App used for sign-in |
+| `PUBLIC_GITHUB_APP_CLIENT_ID` | the GitHub App's client ID, used for sign-in |
 
 Internal links go through Astro's base path: `url()` in `src/lib/url.ts` for components, relative links in hand-written Markdown.
