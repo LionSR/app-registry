@@ -89,13 +89,12 @@ const showAffNo = affiliations.length > 1;
 				<TabItem label="Codex"><Code code={`${clone}\ncodex`} lang="bash" /></TabItem>
 			</Tabs>
 			<p>
-				The agent reads the paper's <code>AGENTS.md</code> when it starts, then explains the work, reproduces figures, and
-				answers questions grounded in the paper, code, and data. Any agent that reads <code>AGENTS.md</code> works.
+				These commands download the paper and start the agent in its folder. Then ask it anything about the work, or ask it
+				to reproduce a figure. Other coding agents work too.
 			</p>
 			<p>
-				To consult the paper from inside another project, run <code>/load-paper {current.release_url}</code> with the{' '}
-				<a href={url('/publish/')}>APP plugin</a> installed. It brings the paper into that project and checks that the release is a
-				verified APP publication.
+				Working in another project? With the <a href={url('/publish/')}>APP plugin</a>, run{' '}
+				<code>/load-paper {current.release_url}</code> to bring this paper into it.
 			</p>
 			<a class="repo" href={paper.repo_url}>View the repository on GitHub</a>
 		</section>

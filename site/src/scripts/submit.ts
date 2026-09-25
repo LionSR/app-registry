@@ -81,25 +81,25 @@ const what = (s: State) => (s.listedAs ? `a new version of ${s.listedAs}` : 'a n
 const needsPermission = (s: State) => s.lookup === 'done' && s.eligible > 0 && !s.tagListed && !s.canWrite && !s.sent;
 
 const RULES: [when: (s: State) => boolean, status: (s: State) => Status][] = [
-	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted. The checks and the review happen in ', { text: `issue #${s.sent!.number}`, href: s.sent!.url }, ', where you are mentioned and can reply.'] })],
+	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted. You can follow the review ', { text: 'on GitHub', href: s.sent!.url }, '; GitHub notifies you when there is news.'] })],
 	[(s) => s.sending, () => ({ tone: 'info', say: ['Submitting…'] })],
 	[(s) => !s.repo, () => ({ tone: 'info', say: ['Choose the repository of your paper.'] })],
 	[(s) => s.lookup === 'loading', (s) => ({ tone: 'info', say: [`Looking up ${name(s)}…`] })],
-	[(s) => s.lookup === 'not-found', (s) => ({ tone: 'error', say: [`${name(s)} was not found. The repository must exist and be public. Check the spelling, or paste its GitHub URL.`] })],
+	[(s) => s.lookup === 'not-found', (s) => ({ tone: 'error', say: [`We could not find ${name(s)}. It must be a public GitHub repository. Check the spelling, or paste its link.`] })],
 	[(s) => s.lookup === 'rate-limited', () => ({ tone: 'error', say: ['GitHub is limiting requests from this browser. Wait a minute and try again.'] })],
 	[(s) => s.lookup === 'failed', (s) => ({ tone: 'error', say: [`GitHub could not be reached for ${name(s)}. Try again in a minute.`] })],
 	[
 		(s) => !s.eligible && Boolean(s.forkOf),
-		(s) => ({ tone: 'warn', say: [`${name(s)} is a fork of ${s.forkOf} and has no release to submit. The paper is usually released from the original repository. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
+		(s) => ({ tone: 'warn', say: [`${name(s)} is a copy (fork) of ${s.forkOf} and has no release to submit. The paper is usually released from the original. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
 	],
-	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no release with an APP_PUBLICATION.json file, so there is nothing to submit yet. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '.'] })],
-	[(s) => s.tagListed, (s) => ({ tone: 'info', say: [`This release is already in the registry as ${s.listedAs}. `, { text: 'View the paper', href: `${BASE}/papers/${s.listedAs}/` }, '.'] })],
-	[(s) => needsPermission(s) && !s.authorsPermission, (s) => ({ tone: 'warn', say: [`@${s.login} cannot write to ${name(s)}. Sign in with an account that can, or confirm above that you have the authors' permission.`] })],
+	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no APP release yet, so there is nothing to submit. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '.'] })],
+	[(s) => s.tagListed, (s) => ({ tone: 'info', say: [`This version is already listed as ${s.listedAs}. `, { text: 'View the paper', href: `${BASE}/papers/${s.listedAs}/` }, '.'] })],
+	[(s) => needsPermission(s) && !s.authorsPermission, (s) => ({ tone: 'warn', say: [`You (@${s.login}) cannot make changes to ${name(s)}. Sign in with an account that can, or confirm above that the authors agreed.`] })],
 	[(s) => !s.termsAccepted, () => ({ tone: 'info', say: ['Agree to the terms of use to submit.'] })],
 	// From here on the release can be submitted; a failed attempt can be retried.
 	[(s) => Boolean(s.sendError), (s) => ({ tone: 'error', say: [s.sendError], ready: true })],
-	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit ${name(s)}@${s.tag} as ${what(s)}. There is no AGENTS.md at this tag, so the checks will likely fail.`], ready: true })],
-	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit ${name(s)}@${s.tag} as ${what(s)}.`], ready: true })],
+	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit ${s.tag} of ${name(s)} as ${what(s)}. This release has no AGENTS.md file, so it will probably not pass the checks.`], ready: true })],
+	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit ${s.tag} of ${name(s)} as ${what(s)}.`], ready: true })],
 ];
 
 function show(el: HTMLElement, parts: Part[]) {
@@ -127,9 +127,9 @@ function render() {
 
 	// What GitHub reports about the signed-in account's access to the chosen repository.
 	access.hidden = !(state.login && state.lookup === 'done');
-	access.textContent = state.canWrite ? `✓ @${state.login} can write to this repository.` : `@${state.login} cannot write to this repository.`;
+	access.textContent = state.canWrite ? `✓ You can make changes to this repository.` : `You cannot make changes to this repository.`;
 	permissionRow.hidden = !needsPermission(state);
-	permissionWhy.textContent = `@${state.login} cannot write to ${name(state)}, so an editor will confirm this with the authors.`;
+	permissionWhy.textContent = `You cannot make changes to ${name(state)}, so an editor will check this with the authors.`;
 
 	const { tone, say, ready = false } = RULES.find(([when]) => when(state))![1](state);
 	statusBox.dataset.tone = tone;

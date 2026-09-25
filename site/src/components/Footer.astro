@@ -1,0 +1,19 @@
+---
+// Starlight's footer, plus links to the two repositories behind the site.
+import Default from '@astrojs/starlight/components/Footer.astro';
+import { REPO_URL } from '../../scripts/sync-protocol.mjs';
+
+const REGISTRY_URL = 'https://github.com/LionSR/app-registry';
+---
+
+<Default />
+<p class="sources">
+	<a href={REPO_URL}>Protocol on GitHub</a>
+	<a href={REGISTRY_URL}>Registry on GitHub</a>
+</p>
+
+<style>
+	.sources { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 1.5rem; font-size: var(--sl-text-sm); }
+	.sources a { color: var(--sl-color-gray-3); }
+	.sources a:hover { color: var(--sl-color-white); }
+</style>

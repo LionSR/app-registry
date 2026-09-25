@@ -18,17 +18,13 @@ const configured = Boolean(api && clientId);
 >
 	<div class="submit" data-api={api} data-client-id={clientId}>
 		<p class="lede">
-			Add a paper you have already <a href={url('/publish/')}>published as an APP release</a> to this registry. After an editor
-			approves it, the paper appears in the list with a registry ID such as <code>APP-260923-0000</code>. Nothing in your
+			Add a paper you have <a href={url('/publish/')}>published with APP</a> to the list on this site. Nothing in your
 			repository changes.
 		</p>
 
 		<section id="signin-step" class="card" aria-labelledby="signin-heading">
 			<h2 id="signin-heading">Sign in with GitHub</h2>
-			<p>
-				The registry uses your GitHub account to record who submitted the paper and to check whether you can write to its
-				repository. It asks for no other access, and the sign-in stays in this browser tab.
-			</p>
+			<p>Sign in so we know who is submitting. We only see your GitHub username and which repositories you can write to.</p>
 			<button type="button" id="signin" disabled={!configured}>Sign in with GitHub</button>
 			<p id="signin-status" class="status" data-tone="error" role="alert" hidden></p>
 		</section>
@@ -47,13 +43,13 @@ const configured = Boolean(api && clientId);
 
 			<label for="tag">Release</label>
 			<select id="tag" class="field" name="tag" disabled><option>Choose a repository first</option></select>
-			<p class="hint">Only releases with an <code>APP_PUBLICATION.json</code> file can be submitted.</p>
+			<p class="hint">Only releases made with the APP publishing workflow can be submitted.</p>
 
 			<p id="preview" class="preview" hidden></p>
 
 			<label id="permission-row" class="check" hidden>
 				<input type="checkbox" id="permission" />
-				<span>I have the authors' permission to submit this release. <span id="permission-why" class="hint"></span></span>
+				<span>The authors agreed that I submit this paper. <span id="permission-why" class="hint"></span></span>
 			</label>
 			<label class="check">
 				<input type="checkbox" id="terms" />
@@ -66,12 +62,12 @@ const configured = Boolean(api && clientId);
 
 		<h2>After you submit</h2>
 		<ol>
-			<li>A submission issue opens in the registry's GitHub repository, and you are mentioned in it.</li>
-			<li>Within a minute, the registry checks the release and posts the result in the issue. If a check fails, fix the release and comment <code>/recheck</code>.</li>
-			<li>An editor then approves the submission or explains what is missing. You can reply in the same issue.</li>
+			<li>We check your release automatically, usually within a minute.</li>
+			<li>If everything is in order, your paper is listed right away. If not, an editor takes a look first.</li>
+			<li>GitHub notifies you about the review, and you can reply there. If something needs fixing, update your release and ask for a recheck.</li>
 		</ol>
 
-		<p class="agents">Submitting from a coding agent? See <a href={url('/agents/')}>For agents</a>: the agent signs you in with GitHub's device flow and sends the same request.</p>
+		<p class="agents">Submitting with a coding agent? See <a href={url('/agents/')}>For agents</a>.</p>
 	</div>
 </StarlightPage>
 

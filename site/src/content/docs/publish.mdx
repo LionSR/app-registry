@@ -5,9 +5,9 @@ description: Publish a finished paper as an APP release in your own GitHub repos
 
 import { Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 
-A paper reaches this site in two steps. First you **publish** it: the APP skills turn your working folder into a GitHub release that any coding agent can open. That release is the publication, and it stays in your own repository. Then you **submit** the release to the registry, so readers can find it here.
+Publishing takes two steps. First, the APP plugin helps you turn the folder with your paper into a GitHub release that any coding agent can open. That release is your publication, and it stays in your own repository. Then you submit it here, so readers can find it.
 
-These instructions follow the [APP protocol repository's README](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update), which also covers updating and manual installation.
+These instructions follow the [APP protocol's README](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update), which also explains how to update the plugin and how to install it by hand.
 
 ## 1. Publish
 
@@ -46,7 +46,7 @@ These instructions follow the [APP protocol repository's README](https://github.
    </TabItem>
    </Tabs>
 
-2. Open the folder that holds your paper, code and data in the agent, and start the publishing workflow.
+2. Open the folder with your paper, code and data in the agent, and start publishing.
 
    <Tabs syncKey="agent">
    <TabItem label="Claude Code">
@@ -72,12 +72,12 @@ These instructions follow the [APP protocol repository's README](https://github.
    </TabItem>
    </Tabs>
 
-   The workflow reproduces or checks your results, organizes the repository, drafts `AGENTS.md` with you, validates everything, and creates the GitHub release. It asks for your approval at each checkpoint and can span several sessions. To let the agent create the release itself, it needs access to your GitHub account; otherwise it tells you which commands to run.
+   The agent guides you step by step: it checks your results, tidies the repository, writes the paper's agent instructions with you, and makes the release. It asks before each important step, and you can stop and continue later. If you let it use your GitHub account, it makes the release for you; otherwise it tells you what to run.
 
 </Steps>
 
-The result is a GitHub release of your repository with an `APP_PUBLICATION.json` file attached. That release is a complete APP publication, whether or not it is listed here. [More on publishing](../guides/publish/).
+When it is done, your repository has a new GitHub release. That release is your publication, whether or not it is listed here. [More on publishing](../guides/publish/).
 
-## 2. Submit to the registry
+## 2. Submit it here
 
-[Submit your release](../submit/) by choosing its repository and tag. The registry checks the release, an editor approves it, and the paper then appears on this site with a registry ID such as `APP-260923-0000`. Submitting does not change your repository.
+[Submit your release](../submit/): sign in with GitHub and choose the release. We check it, and your paper usually appears on this site right away; sometimes an editor takes a look first. Submitting does not change your repository.

@@ -28,7 +28,7 @@ export default defineConfig({
 			title: 'Agentic Publication Protocol',
 			head: process.env.NOINDEX === 'true' ? [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } }] : [],
 			customCss: ['./src/styles/custom.css'],
-			components: { SocialIcons: './src/components/HeaderLinks.astro' },
+			components: { SocialIcons: './src/components/HeaderLinks.astro', Footer: './src/components/Footer.astro' },
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			sidebar: [
 				{ label: 'About APP', slug: 'about' },

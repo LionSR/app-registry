@@ -18,7 +18,7 @@ The registry is a public list of papers published with the Agentic Publication P
 ## What the registry publishes
 
 - An entry for the paper, with fields copied from the release as it is: title, authors, affiliations, GitHub usernames, domain, arXiv ID, tags and the paper summary from `AGENTS.md`, and the release tag, commit and publication ID.
-- The submission issue in the registry's GitHub repository, including your GitHub username and the review discussion.
+- The review discussion on GitHub, including your GitHub username.
 
 ## Your GitHub sign-in
 
