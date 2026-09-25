@@ -8,13 +8,13 @@ const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 Object.assign(process.env, {
 	GITHUB_APP_ID: '123',
 	GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }).toString(),
-	OAUTH_CLIENT_ID: 'Ov23test',
-	OAUTH_CLIENT_SECRET: 'secret',
+	GITHUB_APP_CLIENT_ID: 'Ov23test',
+	GITHUB_APP_CLIENT_SECRET: 'secret',
 	REGISTRY_REPO: 'LionSR/app-registry',
 	SITE_URL: 'https://site.example',
 });
 
-// Fake GitHub: "good-user-token" is shoaibphysics's token from the registry's OAuth App.
+// Fake GitHub: "good-user-token" is shoaibphysics's token from the registry's GitHub App.
 // shoaibphysics can push to their own repo only.
 const calls: { method: string; url: string; auth: string; body?: any }[] = [];
 globalThis.fetch = (async (input: any, init: any = {}) => {
@@ -25,7 +25,7 @@ globalThis.fetch = (async (input: any, init: any = {}) => {
 	calls.push({ method, url, auth, body });
 	const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 	const user = auth === 'token good-user-token';
-	// Token check: only the registry's OAuth App (client Ov23test) knows good-user-token.
+	// Token check: only the registry's GitHub App (client Ov23test) knows good-user-token.
 	if (url.endsWith('/applications/Ov23test/token') && method === 'POST') {
 		const basic = `basic ${Buffer.from('Ov23test:secret').toString('base64')}`;
 		if (auth.toLowerCase() !== basic.toLowerCase()) return json({ message: 'Requires authentication' }, 401);
@@ -80,7 +80,7 @@ test('the terms must be accepted', async () => {
 	assert.equal((await post({ release_url: MINE, accept_terms: 'yes' })).status, 400);
 });
 
-test("rejects a missing token, and any token not issued by the registry's OAuth App", async () => {
+test("rejects a missing token, and any token not issued by the registry's GitHub App", async () => {
 	calls.length = 0;
 	assert.equal((await post({ release_url: MINE, accept_terms: true }, {})).status, 401);
 	const other = await post({ release_url: MINE, accept_terms: true }, { authorization: 'Bearer gho_someOtherAppsToken' });

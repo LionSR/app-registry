@@ -6,7 +6,7 @@
 //   POST …/registry/submit          { release_url, accept_terms: true, authors_permission? }
 //                                   with Authorization: Bearer <token>. The one way to submit, for the
 //                                   website and for agents alike. The token must come from the registry's
-//                                   own OAuth App, through the website or the device flow, so everyone signs
+//                                   own GitHub App, through the website or the device flow, so everyone signs
 //                                   in the same way and nobody hands the registry a broader token. It is used
 //                                   only to read who the caller is and whether they can push to the paper
 //                                   repository; the issue itself is opened by the registry's GitHub App, so
@@ -43,9 +43,9 @@ async function callback(request: Request, env: Env): Promise<Response> {
 		new Response(null, { status: 302, headers: { Location: `${env.SITE_URL}/submit/#${new URLSearchParams({ ...fragment, state })}` } });
 
 	if (!code) return back({ error: url.searchParams.get('error_description') ?? 'Sign-in was cancelled.' });
-	if (!env.OAUTH_CLIENT_ID || !env.OAUTH_CLIENT_SECRET) return back({ error: 'Sign-in is not configured yet.' });
+	if (!env.GITHUB_APP_CLIENT_ID || !env.GITHUB_APP_CLIENT_SECRET) return back({ error: 'Sign-in is not configured yet.' });
 	try {
-		const { authentication } = await exchangeWebFlowCode({ clientType: 'oauth-app', clientId: env.OAUTH_CLIENT_ID, clientSecret: env.OAUTH_CLIENT_SECRET, code });
+		const { authentication } = await exchangeWebFlowCode({ clientType: 'github-app', clientId: env.GITHUB_APP_CLIENT_ID, clientSecret: env.GITHUB_APP_CLIENT_SECRET, code });
 		return back({ token: authentication.token });
 	} catch (err) {
 		// GitHub's reason (e.g. "The client_id and/or client_secret passed are incorrect.") is safe to show.
@@ -73,13 +73,13 @@ async function submit(request: Request, env: Env): Promise<Response> {
 	const { release_url: release, authors_permission: authorsPermission } = body.data;
 	const asUser = { headers: { authorization: `token ${token.data}` } };
 
-	if (!env.OAUTH_CLIENT_ID || !env.OAUTH_CLIENT_SECRET) {
+	if (!env.GITHUB_APP_CLIENT_ID || !env.GITHUB_APP_CLIENT_SECRET) {
 		return reply(503, { error: 'Submissions are paused while sign-in is being set up. Please try again later.' });
 	}
-	// Only tokens issued by the registry's OAuth App are accepted; GitHub also says whose token it is.
+	// Only tokens issued by the registry's GitHub App are accepted; GitHub also says whose token it is.
 	let login: string;
 	try {
-		const { data } = await checkToken({ clientType: 'oauth-app', clientId: env.OAUTH_CLIENT_ID, clientSecret: env.OAUTH_CLIENT_SECRET, token: token.data });
+		const { data } = await checkToken({ clientType: 'github-app', clientId: env.GITHUB_APP_CLIENT_ID, clientSecret: env.GITHUB_APP_CLIENT_SECRET, token: token.data });
 		login = data.user!.login;
 	} catch {
 		return reply(401, { error: `Sign in through the registry first, on ${env.SITE_URL}/submit/ or with the device flow for agents (${env.SITE_URL}/agents/). Other GitHub tokens are not accepted.` });

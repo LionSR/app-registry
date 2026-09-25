@@ -7,10 +7,9 @@ export const Env = z.object({
 	GITHUB_APP_ID: z.string().min(1),
 	// Accept keys stored with literal "\n" as well as real newlines.
 	GITHUB_APP_PRIVATE_KEY: z.string().min(1).transform((key) => key.replace(/\\n/g, '\n')),
-	// Sign-in uses a classic OAuth App with no scopes: its tokens report the user's real push access.
-	// Only the sign-in callback needs it; agents submit with their own token.
-	OAUTH_CLIENT_ID: z.string().min(1).optional(),
-	OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+	// Sign-in (website and device flow) goes through the registry's GitHub App.
+	GITHUB_APP_CLIENT_ID: z.string().min(1).optional(),
+	GITHUB_APP_CLIENT_SECRET: z.string().min(1).optional(),
 	REGISTRY_REPO: z.string().regex(/^[\w.-]+\/[\w.-]+$/, 'REGISTRY_REPO must be owner/repo'),
 	SITE_URL: z.url().transform((url) => url.replace(/\/$/, '')),
 });
