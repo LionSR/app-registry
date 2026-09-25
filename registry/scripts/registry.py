@@ -25,6 +25,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 ENTRIES = ROOT / "registry" / "entries"
+# IDs of removed listings. They are never given out again (see the terms of use).
+RETIRED = ROOT / "registry" / "retired-ids.txt"
 sys.path.insert(0, str(ROOT / "protocol" / "scripts"))
 
 from app_discussion_bot import parse_ref, resolve_commit_tree, verify  # noqa: E402
@@ -94,12 +96,11 @@ def load_entries() -> list[dict[str, Any]]:
 
 
 def next_id(date: dt.date) -> str:
+    """The day's next free number, counting listed and retired IDs alike."""
     stamp = date.strftime("%y%m%d")
-    taken = [
-        int(m.group(2))
-        for p in ENTRIES.glob(f"APP-{stamp}-*.json")
-        if (m := ID_RE.match(p.stem))
-    ]
+    retired = RETIRED.read_text().split() if RETIRED.exists() else []
+    ids = [p.stem for p in ENTRIES.glob(f"APP-{stamp}-*.json")] + [i for i in retired if i.startswith(f"APP-{stamp}-")]
+    taken = [int(m.group(2)) for i in ids if (m := ID_RE.match(i))]
     return f"APP-{stamp}-{(max(taken) + 1 if taken else 0):04d}"
 
 

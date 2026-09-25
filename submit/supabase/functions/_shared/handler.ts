@@ -41,6 +41,7 @@ async function callback(request: Request, env: Env): Promise<Response> {
 		new Response(null, { status: 302, headers: { Location: `${env.SITE_URL}/submit/#${new URLSearchParams({ ...fragment, state })}` } });
 
 	if (!code) return back({ error: url.searchParams.get('error_description') ?? 'Sign-in was cancelled.' });
+	if (!env.OAUTH_CLIENT_ID || !env.OAUTH_CLIENT_SECRET) return back({ error: 'Sign-in is not configured yet.' });
 	try {
 		const { authentication } = await exchangeWebFlowCode({ clientType: 'oauth-app', clientId: env.OAUTH_CLIENT_ID, clientSecret: env.OAUTH_CLIENT_SECRET, code });
 		return back({ token: authentication.token });

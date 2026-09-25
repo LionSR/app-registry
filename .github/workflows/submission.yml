@@ -1,5 +1,7 @@
 # Checks and reviews submission issues opened by the registry's GitHub App.
-# The decision logic lives in registry/scripts/submission.py; this file only applies it.
+# The decision logic lives in registry/scripts/submission.py; this file only runs it and applies the plan.
+# Secrets: COPILOT_PAT (a token from an account with Copilot) enables the AI review. Without it,
+# every submission that passes the checks waits for an editor.
 name: Submission
 
 on:
@@ -31,6 +33,8 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
       REGISTRY_BOT_LOGIN: ${{ vars.REGISTRY_BOT_LOGIN }}
       SITE_URL: ${{ vars.SITE_URL }}
+      AUTO_LIST: ${{ vars.AUTO_LIST || 'true' }}
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
       ISSUE: ${{ github.event.issue.number }}
     steps:
       - uses: actions/checkout@v7
@@ -41,8 +45,39 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Decide
-        run: python registry/scripts/submission.py --event "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" > plan.json && cat plan.json
+      - name: Check the submission
+        id: decide
+        run: |
+          python registry/scripts/submission.py --event "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" > plan.json
+          cat plan.json
+          echo "review=$(jq -r 'if .review then "true" else "false" end' plan.json)" >> "$GITHUB_OUTPUT"
+
+      # Every check passed: an AI review by Copilot decides between listing now and asking an editor.
+      # Copilot gets no tools, and the submission is passed as untrusted data (registry/review-prompt.md).
+      - uses: actions/setup-node@v6
+        if: steps.decide.outputs.review == 'true' && env.COPILOT_GITHUB_TOKEN != ''
+        with:
+          node-version: '22'
+      - name: Install Copilot CLI
+        if: steps.decide.outputs.review == 'true' && env.COPILOT_GITHUB_TOKEN != ''
+        run: npm install -g @github/copilot
+      - name: AI review (GitHub Copilot)
+        id: review
+        if: steps.decide.outputs.review == 'true' && env.COPILOT_GITHUB_TOKEN != ''
+        continue-on-error: true
+        uses: actions/ai-inference@v3
+        with:
+          system-prompt-file: registry/review-prompt.md
+          prompt-file: review-input.txt
+          model: ''
+      - name: Finish the decision
+        if: steps.decide.outputs.review == 'true'
+        env:
+          REVIEW_FILE: ${{ steps.review.outputs.response-file }}
+        run: |
+          python registry/scripts/submission.py --finalize plan.json --review "${REVIEW_FILE:-none}" > final.json
+          mv final.json plan.json
+          cat plan.json
 
       - name: Apply
         run: |

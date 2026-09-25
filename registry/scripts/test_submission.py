@@ -19,6 +19,7 @@ def ev_comment(i, who, text): return ('issue_comment', {"action": "created", "is
 def run(label, ev):
     plan = submission.decide(ev[0], ev[1], BOT, TOKEN, TODAY)
     summary = {k: plan.get(k) for k in ('act', 'state', 'close', 'entry_path', 'reason') if plan.get(k)}
+    if 'review_prompt' in plan: summary['needs AI review'] = True
     first = (plan.get('comment') or '').split('\n```json')[0].strip().replace('\n', ' | ')[:230]
     print(f"{label}\n   {summary}\n   {first}")
     return plan
@@ -35,7 +36,12 @@ shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
 registry.ENTRIES = submission.ENTRIES = tmp
 try:
     print("== against an empty registry ==")
-    run("3 fresh release", ev_open(issue(GOOD, 'shoaibphysics')))
+    p3 = run("3 fresh release, every check passes", ev_open(issue(GOOD, 'shoaibphysics')))
+    print('   prompt starts:', p3['review_prompt'][:90].replace('\n', ' '))
+    for label, reply in [('clean', '{"flag": false, "reasons": [], "summary": "A physics paper."}'), ('flagged', '{"flag": true, "reasons": ["Looks like a placeholder."], "summary": "x"}'), ('no reply', None), ('garbage reply', 'I cannot help with that.')]:
+        f = submission.finalize(p3['pending'], reply, TODAY)
+        print(f"   finalize {label:13} -> {f.get('state')}", '| entry', f.get('entry_path', '-'), '|', [l for l in f['comment'].splitlines() if 'automatic review' in l.lower()][:1])
+        for x in tmp.iterdir(): x.unlink()
     run("4a no write access, listed author", ev_open(issue(GOOD, 'shoaibphysics', write_access=False)))
     run("4b no write access, not an author", ev_open(issue(GOOD, 'randomperson', write_access=False)))
     run("5 bad tag", ev_open(issue(BAD, 'shoaibphysics')))

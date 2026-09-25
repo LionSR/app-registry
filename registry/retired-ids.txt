@@ -1,0 +1,1 @@
+# IDs of listings that were removed. The registry never gives them out again.
