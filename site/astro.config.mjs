@@ -33,6 +33,7 @@ export default defineConfig({
 				{ label: 'Publish your paper', slug: 'publish' },
 				{ label: 'For agents', slug: 'agents' },
 				{ label: 'Videos', slug: 'videos' },
+				{ label: 'Community', slug: 'community' },
 				{
 					label: 'Guides',
 					items: ['guides/install', 'guides/publish', 'guides/read'],

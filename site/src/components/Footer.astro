@@ -2,6 +2,7 @@
 // Starlight's footer, plus links to the two repositories behind the site.
 import Default from '@astrojs/starlight/components/Footer.astro';
 import { REPO_URL } from '../../scripts/sync-protocol.mjs';
+import { url } from '../lib/url';
 
 const REGISTRY_URL = 'https://github.com/LionSR/app-registry';
 ---
@@ -10,6 +11,7 @@ const REGISTRY_URL = 'https://github.com/LionSR/app-registry';
 <p class="sources">
 	<a href={REPO_URL}>Protocol on GitHub</a>
 	<a href={REGISTRY_URL}>Registry on GitHub</a>
+	<a href={url('/community/')}>Paper agents on Zulip</a>
 </p>
 
 <style>
