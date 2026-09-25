@@ -4,14 +4,14 @@ import Default from '@astrojs/starlight/components/SocialIcons.astro';
 import { stripBase, url } from '../lib/url';
 
 const path = stripBase(Astro.url.pathname);
-const isPapers = path === '/' || path.startsWith('/papers');
+const isPapers = path.startsWith('/papers');
 const isPublish = path.startsWith('/publish');
 const isSubmit = path.startsWith('/submit');
 const sections = [
-	{ label: 'Papers', href: url('/'), active: isPapers },
+	{ label: 'Papers', href: url('/papers/'), active: isPapers },
 	{ label: 'Publish', href: url('/publish/'), active: isPublish },
 	{ label: 'Submit', href: url('/submit/'), active: isSubmit },
-	{ label: 'Docs', href: url('/about/'), active: !isPapers && !isPublish && !isSubmit },
+	{ label: 'Docs', href: url('/about/'), active: path !== '/' && !isPapers && !isPublish && !isSubmit },
 ];
 ---
 

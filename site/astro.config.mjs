@@ -20,8 +20,6 @@ export default defineConfig({
 	base,
 	redirects: {
 		'/protocol/latest': withBase(`/protocol/${latest}/`),
-		// The homepage is the papers listing.
-		'/papers': withBase('/'),
 	},
 	integrations: [
 		starlight({

@@ -1,0 +1,143 @@
+---
+// The full list: every paper with its details, a search, a domain filter, sorting, and a compact view.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Marked } from 'marked';
+import { allPapers, firstListed, lastUpdated, latest } from '../../lib/papers';
+import { formatDate } from '../../lib/format';
+import { url } from '../../lib/url';
+
+const papers = await allPapers();
+const domains = [...new Set(papers.map((p) => latest(p).domain).filter(Boolean))].sort() as string[];
+// Summaries are the repo's own Markdown, rendered as written. Raw HTML is escaped.
+const marked = new Marked({ renderer: { html: ({ text }) => text.replace(/</g, '&lt;') } });
+---
+
+<StarlightPage
+	frontmatter={{
+		title: 'All papers',
+		template: 'splash',
+		description: 'Every paper published with APP.',
+		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: url('/papers/index.json') } }],
+	}}
+>
+	<div class="list" data-view="details">
+		<div class="toolbar">
+			<input id="q" class="field" type="search" placeholder="Search" aria-label="Search papers" autocomplete="off" />
+			<select id="domain" class="field" aria-label="Domain">
+				<option value="">All domains</option>
+				{domains.map((d) => <option value={d}>{d}</option>)}
+			</select>
+			<select id="sort" class="field" aria-label="Sort">
+				<option value="updated">Recently updated</option>
+				<option value="listed">Newest</option>
+				<option value="title">Title</option>
+			</select>
+			<div class="view" role="group" aria-label="View">
+				<button type="button" data-view="details" aria-pressed="true">Details</button>
+				<button type="button" data-view="compact" aria-pressed="false">Compact</button>
+			</div>
+		</div>
+		<p class="count"><span id="shown">{papers.length}</span> of {papers.length} papers</p>
+
+		<ol id="papers">
+			{
+				papers.map((p) => {
+					const v = latest(p);
+					const authors = v.authors?.map((a) => a.name).join(', ');
+					const search = [v.title, authors, v.domain, ...(v.tags ?? []), p.id, v.arxiv_id].filter(Boolean).join(' ').toLowerCase();
+					return (
+						<li class="entry" data-search={search} data-domain={v.domain ?? ''} data-listed={firstListed(p)} data-updated={lastUpdated(p)} data-title={v.title.toLowerCase()}>
+							<a class="paper-title" href={url(`/papers/${p.id}/`)}>{v.title}</a>
+							{authors && <p class="authors">{authors}</p>}
+							<p class="meta">
+								<span>{p.id}</span>
+								{p.versions.length > 1 && <span>v{v.v}</span>}
+								{v.domain && <span>{v.domain}</span>}
+								{v.arxiv_id && <a href={`https://arxiv.org/abs/${v.arxiv_id}`}>arXiv:{v.arxiv_id}</a>}
+								<span>Listed {formatDate(firstListed(p))}</span>
+								{p.versions.length > 1 && lastUpdated(p) !== firstListed(p) && <span>updated {formatDate(lastUpdated(p))}</span>}
+							</p>
+							{
+								v.paper_summary && (
+									<details class="summary">
+										<summary>Summary</summary>
+										<div set:html={marked.parse(v.paper_summary)} />
+									</details>
+								)
+							}
+							{v.tags && <p class="tags">{v.tags.map((t) => <span>{t}</span>)}</p>}
+						</li>
+					);
+				})
+			}
+		</ol>
+		<p id="empty" hidden>No papers match.</p>
+	</div>
+</StarlightPage>
+
+<script>
+	const list = document.querySelector<HTMLElement>('.list')!;
+	const ol = document.getElementById('papers')!;
+	const q = document.getElementById('q') as HTMLInputElement;
+	const domain = document.getElementById('domain') as HTMLSelectElement;
+	const sort = document.getElementById('sort') as HTMLSelectElement;
+	const shown = document.getElementById('shown')!;
+	const empty = document.getElementById('empty')!;
+	const items = [...ol.querySelectorAll<HTMLElement>('li.entry')];
+	const ORDER: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+		updated: (a, b) => b.dataset.updated!.localeCompare(a.dataset.updated!),
+		listed: (a, b) => b.dataset.listed!.localeCompare(a.dataset.listed!),
+		title: (a, b) => a.dataset.title!.localeCompare(b.dataset.title!),
+	};
+	function apply() {
+		const terms = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+		let n = 0;
+		for (const li of items) {
+			const hit = terms.every((t) => li.dataset.search!.includes(t)) && (!domain.value || li.dataset.domain === domain.value);
+			li.hidden = !hit;
+			if (hit) n++;
+		}
+		ol.append(...[...items].sort(ORDER[sort.value]));
+		shown.textContent = String(n);
+		empty.hidden = n > 0;
+	}
+	for (const el of [q, domain, sort]) el.addEventListener('input', apply);
+	for (const b of list.querySelectorAll<HTMLButtonElement>('.view button')) {
+		b.addEventListener('click', () => {
+			list.dataset.view = b.dataset.view;
+			for (const o of list.querySelectorAll<HTMLButtonElement>('.view button')) o.setAttribute('aria-pressed', String(o === b));
+		});
+	}
+</script>
+
+<style>
+	.list { max-width: 52rem; }
+	.toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
+	/* !important: Starlight's content styles add a top margin between neighbouring elements. */
+	.toolbar > * { height: 2.25rem; box-sizing: border-box; margin: 0 !important; }
+	.toolbar #q { flex: 1 1 14rem; font-size: var(--sl-text-sm); }
+	.toolbar select { font-size: var(--sl-text-sm); }
+	.view { display: inline-flex; border: 1px solid var(--sl-color-gray-4); border-radius: 0.4rem; overflow: hidden; }
+	.view button { font: inherit; font-size: var(--sl-text-sm); line-height: 1; margin: 0; padding: 0 0.8rem; border: 0; background: transparent; color: var(--sl-color-gray-2); cursor: pointer; }
+	.view button[aria-pressed='true'] { background: var(--sl-color-accent); color: var(--sl-color-black); }
+	.count, #empty { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+	#papers { list-style: none; padding: 0; margin-top: 0.5rem; }
+	.entry { margin: 0; padding: 1rem 0; border-bottom: 1px solid var(--sl-color-hairline); }
+	.paper-title { font-size: 1.25rem; line-height: 1.3; text-decoration: none; }
+	.paper-title:hover { text-decoration: underline; }
+	.entry p { margin: 0.2rem 0 0; }
+	.authors { color: var(--sl-color-gray-2); }
+	.meta { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+	.summary { margin-top: 0.4rem; font-size: var(--sl-text-sm); }
+	.summary summary { cursor: pointer; color: var(--sl-color-accent); }
+	.summary div { max-width: 70ch; margin-top: 0.3rem; }
+	.tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+	.tags span { font-size: var(--sl-text-xs); padding: 0.05rem 0.5rem; border: 1px solid var(--sl-color-gray-5); border-radius: 1rem; color: var(--sl-color-gray-2); }
+	/* Compact: one line per paper. */
+	.list[data-view='compact'] .entry { display: grid; grid-template-columns: 1fr auto; gap: 0 1rem; padding: 0.5rem 0; }
+	.list[data-view='compact'] .paper-title { font-size: 1.05rem; }
+	.list[data-view='compact'] :is(.summary, .tags) { display: none; }
+	.list[data-view='compact'] .meta :not(:first-child, :last-child) { display: none; }
+	.list[data-view='compact'] .authors { grid-column: 1; font-size: var(--sl-text-sm); }
+	.list[data-view='compact'] .meta { grid-column: 2; grid-row: 1 / span 2; align-self: center; justify-content: end; }
+</style>

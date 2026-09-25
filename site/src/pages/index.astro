@@ -4,16 +4,9 @@ import { LinkButton } from '@astrojs/starlight/components';
 import PaperRow from '../components/PaperRow.astro';
 import Video from '../components/Video.astro';
 import { url } from '../lib/url';
-import { allPapers, firstListed } from '../lib/papers';
-import { formatMonth } from '../lib/format';
+import { allPapers } from '../lib/papers';
 
 const papers = await allPapers();
-// Group by the month a paper was first listed, newest first (arXiv-style listing).
-const groups = new Map<string, typeof papers>();
-for (const p of papers) {
-	const month = formatMonth(firstListed(p));
-	groups.set(month, [...(groups.get(month) ?? []), p]);
-}
 ---
 
 <StarlightPage
@@ -40,47 +33,13 @@ for (const p of papers) {
 		</div>
 
 		<h2 class="listing">New papers</h2>
-		<div class="bar">
-			<p class="count"><span id="shown">{papers.length}</span> of {papers.length} papers, newest first</p>
-			<input id="q" class="field" type="search" placeholder="Search titles, authors, tags" aria-label="Search papers" autocomplete="off" />
-		</div>
-
-		{
-			[...groups].map(([month, list]) => (
-				<section class="month" data-month>
-					<h2>{month}</h2>
-					<ul>
-						{list.map((paper) => <PaperRow paper={paper} />)}
-					</ul>
-				</section>
-			))
-		}
-		<p id="empty" hidden>No papers match your search.</p>
+		<ul class="recent">
+			{papers.slice(0, 6).map((paper) => <PaperRow paper={paper} />)}
+		</ul>
+		<p><a href={url('/papers/')}>All {papers.length} papers</a></p>
 	</div>
 </StarlightPage>
 
-<script>
-	const q = document.getElementById('q') as HTMLInputElement;
-	const shown = document.getElementById('shown')!;
-	const empty = document.getElementById('empty')!;
-	const months = [...document.querySelectorAll<HTMLElement>('[data-month]')];
-	q.addEventListener('input', () => {
-		const terms = q.value.toLowerCase().split(/\s+/).filter(Boolean);
-		let n = 0;
-		for (const month of months) {
-			let inMonth = 0;
-			for (const row of month.querySelectorAll<HTMLElement>('[data-search]')) {
-				const hit = terms.every((t) => row.dataset.search!.includes(t));
-				row.hidden = !hit;
-				if (hit) inMonth++;
-			}
-			month.hidden = inMonth === 0;
-			n += inMonth;
-		}
-		shown.textContent = String(n);
-		empty.hidden = n > 0;
-	});
-</script>
 
 <style>
 	.catalog { max-width: 60rem; }
@@ -96,10 +55,5 @@ for (const p of papers) {
 	.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
 	@media (max-width: 50rem) { .intro { grid-template-columns: 1fr; } }
 	.listing { margin-top: 2rem; font-size: var(--sl-text-2xl); }
-	.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; }
-	.count { margin: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
-	#q { flex: 0 1 20rem; font-size: var(--sl-text-sm); }
-	.month h2 { font-size: var(--sl-text-base); color: var(--sl-color-gray-3); font-weight: 600; margin-top: 1.75rem; }
-	.month ul { list-style: none; padding: 0; margin-top: 0.25rem; }
-	#empty { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
+	.recent { list-style: none; padding: 0; margin-top: 0.5rem; }
 </style>

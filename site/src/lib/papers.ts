@@ -5,11 +5,13 @@ export type Version = Paper['versions'][number];
 
 export const latest = (p: Paper): Version => p.versions[p.versions.length - 1];
 export const firstListed = (p: Paper) => p.versions[0].listed_at;
+/** When the latest version was listed; a new version moves a paper up, as arXiv lists replacements. */
+export const lastUpdated = (p: Paper) => latest(p).listed_at;
 
-/** All papers, most recently listed first. */
+/** All papers, most recently updated first (ties: newest ID first). */
 export async function allPapers(): Promise<Paper[]> {
 	const entries = await getCollection('papers');
-	return entries.map((e) => e.data).sort((a, b) => b.id.localeCompare(a.id));
+	return entries.map((e) => e.data).sort((a, b) => lastUpdated(b).localeCompare(lastUpdated(a)) || b.id.localeCompare(a.id));
 }
 
 /** Citable ID of one version, e.g. APP-260923-0000v2. The bare ID always means the latest version. */
