@@ -33,14 +33,4 @@ Issues not opened by the app are ignored.
 
 ## Deploying
 
-The site is served at <https://agenticpapers.app> from GitHub Pages, built by `.github/workflows/deploy.yml`. The domain is set in the repository's Pages settings only: a site published by a custom Actions workflow ignores a `CNAME` file.
-
-Setting up the domain, in this order (GitHub asks for the domain to be added before the DNS records, to prevent takeover):
-
-1. Verify `agenticpapers.app` in the account's Settings → Pages (a TXT record `_github-pages-challenge-LionSR.agenticpapers.app`).
-2. Set the custom domain in this repository's Settings → Pages.
-3. At the DNS provider: A records for the apex to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; AAAA records to `2606:50c0:8000::153` through `2606:50c0:8003::153`; a `www` CNAME to `lionsr.github.io`. No wildcard records.
-4. Once the certificate is issued (up to 24 hours; `.app` only loads over HTTPS), turn on Enforce HTTPS.
-5. Point everything at the new address together, then rerun the deploy workflow:
-   - repository variables `SITE_ORIGIN=https://agenticpapers.app`, `BASE_PATH=/`, `SITE_URL=https://agenticpapers.app`
-   - the submit endpoint's `SITE_URL` secret (see [submit/README.md](submit/README.md)), which sets the allowed CORS origin and the sign-in redirect
+The site is served at <https://agenticpapers.app> by GitHub Pages (`.github/workflows/deploy.yml`). The domain is set in the repository's Pages settings, not a `CNAME` file. If it changes, update the `SITE_ORIGIN`/`SITE_URL` variables and the submit endpoint's `SITE_URL` secret together.
