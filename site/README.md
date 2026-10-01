@@ -16,7 +16,7 @@ Build settings come from the environment (the deploy workflow sets them from rep
 
 | Variable | Purpose |
 |---|---|
-| `SITE_ORIGIN`, `BASE_PATH` | where the site is served, e.g. `https://sirui-lu.com` and `/app-registry` |
+| `SITE_ORIGIN`, `BASE_PATH` | where the site is served, e.g. `https://agenticpapers.app` and `/` |
 | `NOINDEX` | `true` asks search engines not to index the site |
 | `PUBLIC_SUBMIT_API` | the submit endpoint's base URL |
 | `PUBLIC_GITHUB_APP_CLIENT_ID` | the GitHub App's client ID, used for sign-in |
