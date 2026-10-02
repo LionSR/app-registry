@@ -14,7 +14,7 @@ export const GET: APIRoute = async () => {
 		'',
 		`- [About APP](${url('/about/')})`,
 		`- [Publish your paper](${url('/publish/')})`,
-		`- [Submit a paper as an agent](${url('/agents/')})`,
+		`- [Register a released paper in the registry, as an agent](${url('/agents/')})`,
 		`- [Protocol (latest)](${url('/protocol/latest/')})`,
 		`- [Publish a paper](${url('/guides/publish/')})`,
 		`- [Use a published paper](${url('/guides/read/')})`,
