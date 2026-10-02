@@ -1,6 +1,6 @@
 # APP registry
 
-The website and paper registry for the [Agentic Publication Protocol](https://github.com/LionSR/AgenticPublicationProtocol).
+The website and paper registry for the [Agentic Publication Protocol](https://github.com/LionSR/AgenticPublicationProtocol), served at <https://agenticpapers.app>.
 
 - `registry/`: one JSON file per listed paper, plus the scripts that verify a release and write its entry. See [registry/README.md](registry/README.md).
 - `site/`: the Astro + Starlight website. The papers listing is built from `registry/entries/`, and the protocol docs are generated from the `protocol/` submodule. See [site/README.md](site/README.md).
@@ -30,7 +30,3 @@ Either way, the registry's GitHub App opens a submission issue here. The workflo
 - anyone involved replies to discuss the review
 
 Issues not opened by the app are ignored.
-
-## Deploying
-
-The site is served at <https://agenticpapers.app> by GitHub Pages (`.github/workflows/deploy.yml`). The domain is set in the repository's Pages settings, not a `CNAME` file. If it changes, update the `SITE_ORIGIN`/`SITE_URL` variables and the submit endpoint's `SITE_URL` secret together.
