@@ -5,8 +5,8 @@ import { REPO_URL, syncFromProtocolRepo } from './scripts/sync-protocol.mjs';
 
 
 // Deployment settings come from the environment so local builds stay at the root:
-//   SITE_ORIGIN  e.g. https://lionsr.github.io
-//   BASE_PATH    e.g. /app-registry
+//   SITE_ORIGIN  e.g. https://agenticpapers.app
+//   BASE_PATH    e.g. / (or /app-registry without a custom domain)
 //   NOINDEX      "true" keeps search engines away before launch
 const base = (process.env.BASE_PATH ?? '/').replace(/\/?$/, '/');
 const withBase = (/** @type {string} */ path) => base.replace(/\/$/, '') + path;
