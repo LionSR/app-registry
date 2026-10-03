@@ -10,6 +10,8 @@ export const GET: APIRoute = async () => {
 		'',
 		'> A format for publishing a finished paper as a GitHub repository that an AI agent can represent.',
 		'',
+		`To publish a paper, or to list a released one in this registry, on a person's behalf: ${url('/start.md')}`,
+		'',
 		'## Docs',
 		'',
 		`- [About APP](${url('/about/')})`,
