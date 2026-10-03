@@ -62,7 +62,10 @@ If you cannot install skills, fetch and read the skill files directly:
 - Step skills: ${RAW_SKILLS}/<name>/SKILL.md
 - Root repository files: ${RAW_REPO}/<path> (such as \`PROTOCOL.md\`)
 
-When a skill references relative paths (for example, \`../../PROTOCOL.md\` or sibling files), resolve the relative path against the URL of the containing skill.
+Skills mention three kinds of paths. Resolve each kind as follows:
+- Links to supporting files (for example, \`../../PROTOCOL.md\`, \`../extract-chat-context/confidentiality-checklist.md\`, or \`release-real.md\`): resolve against the URL of the skill that contains the link.
+- Protocol repository paths (for example, \`PROTOCOL.md\` or \`template/publications.md\`): fetch ${RAW_REPO}/<path>.
+- Workflow paths (for example, \`publication-staging/\` or \`working/reproduction/reproduction-report.md\`): these are in the user's project directory. Do not resolve them as URLs.
 
 ## 2. Publish
 
