@@ -172,7 +172,8 @@ def plan_for_checks(sub: dict[str, Any], result: dict[str, Any], ctx: dict[str, 
     state = result["state"]
     who = f"@{sub['submitter']}"
     next_step = {
-        "checks-failed": f"{who}, fix the release and comment `/recheck` to run the checks again. "
+        "checks-failed": f"{who}, a published release cannot change. If the paper's files must change, publish a new release "
+        "with a new tag and submit it. For other fixes, such as a missing release asset, fix them and comment `/recheck`. "
         "The protocol explains each requirement: https://github.com/LionSR/AgenticPublicationProtocol/blob/main/PROTOCOL.md",
         "awaiting-editor": f"The release is valid. An editor will look at the points marked ⚠️ and reply here.\n\n{EDITOR_GUIDE}",
         "already-listed": f"Nothing to do: this release is already listed as {result['listed_as']}.",
@@ -216,7 +217,7 @@ EDITOR_GUIDE = (
     "Then comment one of:\n\n"
     "- `/accept` to list the paper now;\n"
     "- `/decline <reason>` to decline, with a reason the submitter will read;\n"
-    "- or an ordinary comment to ask the submitter something. They can reply, or fix the release and comment `/recheck`."
+    "- or an ordinary comment to ask the submitter something. They can reply, comment `/recheck` after a fix that keeps the release, or submit a new release."
 )
 
 

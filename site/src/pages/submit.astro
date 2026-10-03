@@ -63,8 +63,8 @@ const configured = Boolean(api && clientId);
 		<h2>After you submit</h2>
 		<ol>
 			<li>The registry runs automated checks on your release within one minute.</li>
-			<li>If all checks pass, the registry lists the paper immediately. If checks fail or require review, an editor reviews the submission.</li>
-			<li>GitHub notifies you of review comments. You can reply in the issue. If changes are required, update your release and request a recheck.</li>
+			<li>If all checks pass, the registry lists the paper immediately. Sometimes an editor reviews it first. If a check fails, the issue says what to fix.</li>
+			<li>GitHub notifies you of review comments. You can reply in the issue. A published release cannot change: if the paper's files must change, publish a new release and submit it. For other fixes, such as a missing release asset, comment <code>/recheck</code> in the issue.</li>
 		</ol>
 
 		<p class="agents">To submit with an AI coding agent, see <a href={url('/agents/')}>Register a paper with an agent</a>.</p>
