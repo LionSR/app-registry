@@ -4,7 +4,8 @@ import { url } from '../lib/url';
 // Instructions for an AI coding agent requested to publish research following agenticpapers.app.
 // Linked from llms.txt, the home page, and the Publish page.
 const PROTOCOL = 'LionSR/AgenticPublicationProtocol';
-const RAW = `https://raw.githubusercontent.com/${PROTOCOL}/main/skills`;
+const RAW_REPO = `https://raw.githubusercontent.com/${PROTOCOL}/main`;
+const RAW_SKILLS = `${RAW_REPO}/skills`;
 
 export const GET: APIRoute = ({ site }) => {
 	const abs = (path: string) => (site ? new URL(url(path), site).href : url(path));
@@ -56,7 +57,12 @@ git clone https://github.com/${PROTOCOL}.git
 
 ### Without installing
 
-If you cannot install skills, read the skill files directly. Start with ${RAW}/publish-paper/SKILL.md. That file references modular step skills located at ${RAW}/<name>/SKILL.md.
+If you cannot install skills, fetch and read the skill files directly:
+- Primary skill: ${RAW_SKILLS}/publish-paper/SKILL.md
+- Step skills: ${RAW_SKILLS}/<name>/SKILL.md
+- Root repository files: ${RAW_REPO}/<path> (such as \`PROTOCOL.md\`)
+
+When a skill references relative paths (for example, \`../../PROTOCOL.md\` or sibling files), resolve the relative path against the URL of the containing skill.
 
 ## 2. Publish
 
