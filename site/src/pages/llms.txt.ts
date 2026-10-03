@@ -8,7 +8,9 @@ export const GET: APIRoute = async () => {
 	const lines = [
 		'# Agentic Publication Protocol',
 		'',
-		'> A format for publishing a finished paper as a GitHub repository that an AI agent can represent.',
+		'> A specification to publish a paper as a GitHub repository represented by an AI agent.',
+		'',
+		`To publish a paper or submit a release to the registry for a user, see: ${url('/start.md')}`,
 		'',
 		'## Docs',
 		'',

@@ -1,24 +1,24 @@
 # APP website
 
-Astro + Starlight site: the papers listing, paper pages, the Submit page, and the protocol docs.
+Astro and Starlight website for paper listings, paper pages, the submission interface, and protocol documentation.
 
-- **Papers** come from `../registry/entries/*.json`, validated by the Zod schema in `src/content.config.ts`. A malformed entry fails the build. Each paper is also served as JSON (`/papers/<ID>.json`, `/papers/index.json`) and listed in `/llms.txt`.
-- **Protocol docs, guides and the skills reference** are generated at build time from the `../protocol` submodule by `scripts/sync-protocol.mjs`: one page per release tag from 1.0.0 on, and selected README sections. Do not edit those pages here; change the protocol repo and update the submodule.
-- **The Submit page** (`src/pages/submit.astro`, script in `src/scripts/`) talks to the submit endpoint in `../submit`.
+- **Papers**: Sourced from `../registry/entries/*.json` and validated by the schema in `src/content.config.ts`. Invalid entries cause build failure. The site also serves JSON representations (`/papers/<ID>.json`, `/papers/index.json`) and `/llms.txt`.
+- **Protocol documentation, guides, and skills reference**: Generated at build time from the `../protocol` submodule by `scripts/sync-protocol.mjs`. Do not edit generated documentation in this directory. Update the protocol repository and update the submodule reference.
+- **Submit interface**: Located at `src/pages/submit.astro` and `src/scripts/submit.ts`. Communicates with the submission endpoint in `../submit`.
 
 ```bash
 npm install
-npm run dev     # http://localhost:4321
-npm run build   # static output in dist/
+npm run dev     # Starts local server at http://localhost:4321
+npm run build   # Generates static assets in dist/
 ```
 
-Build settings come from the environment (the deploy workflow sets them from repository variables):
+Build configuration variables (configured in deployment workflows from repository variables):
 
 | Variable | Purpose |
 |---|---|
-| `SITE_ORIGIN`, `BASE_PATH` | where the site is served, e.g. `https://agenticpapers.app` and `/`. If this changes, also update the `SITE_URL` variable and the submit endpoint's `SITE_URL` secret |
-| `NOINDEX` | `true` asks search engines not to index the site |
-| `PUBLIC_SUBMIT_API` | the submit endpoint's base URL |
-| `PUBLIC_GITHUB_APP_CLIENT_ID` | the GitHub App's client ID, used for sign-in |
+| `SITE_ORIGIN`, `BASE_PATH` | Base URL where the site is served (for example, `https://agenticpapers.app` and `/`). If changed, update `SITE_URL` in repository variables and Supabase secrets. |
+| `NOINDEX` | Set to `true` to block search engine indexing. |
+| `PUBLIC_SUBMIT_API` | Base URL of the submission endpoint. |
+| `PUBLIC_GITHUB_APP_CLIENT_ID` | Client ID of the GitHub App used for authentication. |
 
-Internal links go through Astro's base path: `url()` in `src/lib/url.ts` for components, relative links in hand-written Markdown.
+Internal links use Astro base path handling: call `url()` from `src/lib/url.ts` in components, and use relative links in Markdown documents.

@@ -13,18 +13,18 @@ const configured = Boolean(api && clientId);
 	frontmatter={{
 		title: 'Submit to the registry',
 		template: 'splash',
-		description: 'Add a published APP release to the registry so readers can find it.',
+		description: 'Submit a published APP release to the registry.',
 	}}
 >
 	<div class="submit" data-api={api} data-client-id={clientId}>
 		<p class="lede">
-			Add a paper you have <a href={url('/publish/')}>published with APP</a> to the list on this site. Nothing in your
-			repository changes.
+			Submit a paper <a href={url('/publish/')}>published with APP</a> to the registry. Submitting registers your release
+			and does not modify your repository.
 		</p>
 
 		<section id="signin-step" class="card" aria-labelledby="signin-heading">
 			<h2 id="signin-heading">Sign in with GitHub</h2>
-			<p>Sign in so we know who is submitting. We only see your GitHub username and which repositories you can write to.</p>
+			<p>Sign in with GitHub to verify submitter identity. The registry reads only your username and repository write permissions.</p>
 			<button type="button" id="signin" disabled={!configured}>Sign in with GitHub</button>
 			<p id="signin-status" class="status" data-tone="error" role="alert" hidden></p>
 		</section>
@@ -38,22 +38,22 @@ const configured = Boolean(api && clientId);
 			<label for="repo">Repository</label>
 			<input id="repo" class="field" name="repo" required autocomplete="off" list="repo-suggestions" placeholder="owner/paper-repo" />
 			<datalist id="repo-suggestions"></datalist>
-			<p class="hint">A public GitHub repository. Type <code>owner/</code> to choose from its repositories, or paste a URL.</p>
+			<p class="hint">Specify a public GitHub repository. Type <code>owner/</code> to select from repositories, or paste a repository URL.</p>
 			<p id="access" class="hint access" hidden></p>
 
 			<label for="tag">Release</label>
-			<select id="tag" class="field" name="tag" disabled><option>Choose a repository first</option></select>
-			<p class="hint">Only releases made with the APP publishing workflow can be submitted.</p>
+			<select id="tag" class="field" name="tag" disabled><option>Select a repository first</option></select>
+			<p class="hint">Submit only releases created with the APP publishing workflow.</p>
 
 			<p id="preview" class="preview" hidden></p>
 
 			<label id="permission-row" class="check" hidden>
 				<input type="checkbox" id="permission" />
-				<span>The authors agreed that I submit this paper. <span id="permission-why" class="hint"></span></span>
+				<span>The authors granted permission to submit this release. <span id="permission-why" class="hint"></span></span>
 			</label>
 			<label class="check">
 				<input type="checkbox" id="terms" />
-				<span>I agree to the <a href={url('/terms/')} target="_blank">terms of use</a>.</span>
+				<span>I accept the <a href={url('/terms/')} target="_blank">terms of use</a>.</span>
 			</label>
 
 			<div id="status" class="status" data-tone="info" role="status" aria-live="polite"></div>
@@ -62,12 +62,12 @@ const configured = Boolean(api && clientId);
 
 		<h2>After you submit</h2>
 		<ol>
-			<li>We check your release automatically, usually within a minute.</li>
-			<li>If everything is in order, your paper is listed right away. If not, an editor takes a look first.</li>
-			<li>GitHub notifies you about the review, and you can reply there. If something needs fixing, update your release and ask for a recheck.</li>
+			<li>The registry runs automated checks on your release within one minute.</li>
+			<li>If all checks pass, the registry lists the paper immediately. If checks fail or require review, an editor reviews the submission.</li>
+			<li>GitHub notifies you of review comments. You can reply in the issue. If changes are required, update your release and request a recheck.</li>
 		</ol>
 
-		<p class="agents">Submitting with a coding agent? See <a href={url('/agents/')}>Register a paper with an agent</a>.</p>
+		<p class="agents">To submit with an AI coding agent, see <a href={url('/agents/')}>Register a paper with an agent</a>.</p>
 	</div>
 </StarlightPage>
 

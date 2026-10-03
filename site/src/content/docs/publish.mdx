@@ -1,24 +1,30 @@
 ---
 title: Publish your paper
-description: Publish a finished paper as an APP release in your own GitHub repository, then submit it to the registry.
+description: Create an APP release in your GitHub repository and submit the release to the registry.
 ---
 
 import { Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 
-Publishing takes two steps. First, the APP plugin helps you turn the folder with your paper into a GitHub release that any coding agent can open. That release is your publication, and it stays in your own repository. Then you submit it here, so readers can find it.
+Publishing includes two steps:
+1. Create a validated GitHub release in your repository with the APP plugin.
+2. Submit the release to this registry so researchers can find your paper.
 
-These instructions follow the [APP protocol's README](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update), which also explains how to update the plugin and how to install it by hand.
+Your GitHub release serves as the primary publication and remains in your own repository. The registry listing provides discoverability and permanent indexing.
+
+You can also instruct your AI coding agent to execute these steps: tell the agent to *publish my paper following agenticpapers.app*. The agent inspects [agent instructions](../start.md), requests confirmation to install the plugin, and starts the workflow.
+
+These instructions align with the [APP protocol specification](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update).
 
 ## 1. Publish
 
 <Steps>
 
-1. Install Claude Code or Codex, then add the APP plugin to it. APP runs inside the agent; it is not a separate program.
+1. Install Claude Code or Codex, then install the APP plugin. The plugin runs directly inside the AI agent.
 
    <Tabs syncKey="agent">
    <TabItem label="Claude Code">
 
-   Type these at the Claude Code prompt, inside a running session (start one with `claude`), not in your shell:
+   Enter these commands in the Claude Code prompt during an active session (type `claude` in your terminal to start):
 
    ```text
    /plugin marketplace add LionSR/AgenticPublicationProtocol
@@ -29,14 +35,14 @@ These instructions follow the [APP protocol's README](https://github.com/LionSR/
    </TabItem>
    <TabItem label="Codex app">
 
-   1. Open **Plugins** and click **Add → Add marketplace**.
-   2. Enter `LionSR/AgenticPublicationProtocol` as the source, leave Git ref and Sparse paths empty, and click **Add marketplace**.
-   3. Search the plugin list for `paper-protocol` and switch it on.
+   1. Open **Plugins** and select **Add → Add marketplace**.
+   2. Enter `LionSR/AgenticPublicationProtocol` as the source. Leave Git ref and Sparse paths empty. Select **Add marketplace**.
+   3. Locate `paper-protocol` in the plugin list and enable it.
 
    </TabItem>
    <TabItem label="Codex in a terminal">
 
-   Run these in your shell, not inside Codex:
+   Run these commands in your shell:
 
    ```bash
    codex plugin marketplace add LionSR/AgenticPublicationProtocol
@@ -46,7 +52,7 @@ These instructions follow the [APP protocol's README](https://github.com/LionSR/
    </TabItem>
    </Tabs>
 
-2. Open the folder with your paper, code and data in the agent, and start publishing.
+2. Open the directory containing your paper, code, and data in the agent, then start publishing.
 
    <Tabs syncKey="agent">
    <TabItem label="Claude Code">
@@ -72,12 +78,19 @@ These instructions follow the [APP protocol's README](https://github.com/LionSR/
    </TabItem>
    </Tabs>
 
-   The agent guides you step by step: it checks your results, tidies the repository, writes the paper's agent instructions with you, and makes the release. It asks before each important step, and you can stop and continue later. If you let it use your GitHub account, it makes the release for you; otherwise it tells you what to run.
+   The agent guides you through the verification and release workflow:
+   - Verifies code execution and reproduces manuscript figures.
+   - Identifies missing environment dependencies or data gaps.
+   - Collaborates with you to draft clear `AGENTS.md` instructions.
+   - Packages and validates publication artifacts.
+   - Creates the tagged GitHub release.
+
+   The agent requests confirmation before each critical operation or repository change. You can pause the workflow and resume in later sessions. If you grant GitHub access, the agent creates the release directly; otherwise, it provides the exact Git commands to run.
 
 </Steps>
 
-When it is done, your repository has a new GitHub release. That release is your publication, whether or not it is listed here. [More on publishing](../guides/publish/).
+When the workflow completes, your repository contains a new GitHub release with an `APP_PUBLICATION.json` manifest. This release is your official publication. For full details on the specification, see the [publishing guide](../guides/publish/).
 
-## 2. Submit it here
+## 2. Submit to the registry
 
-[Submit your release](../submit/): sign in with GitHub and choose the release. We check it, and your paper usually appears on this site right away; sometimes an editor takes a look first. Submitting does not change your repository.
+[Submit your release](../submit/) to the registry: sign in with GitHub and select your release. The registry executes automated verification checks immediately. If all checks pass, your paper appears in the registry right away. If an edge case requires manual adjudication, an editor inspects the submission. Submitting never modifies your repository.
