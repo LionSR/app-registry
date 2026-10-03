@@ -82,7 +82,9 @@ Reconcile any verification discrepancies collaboratively with the user. Always r
 
 ## 3. Register in the registry
 
-After creating the verified release, offer to register it in the registry catalog. Follow the procedure at ${abs('/agents/')}. The user authenticates through GitHub using a one-time device code, and the agent submits the release URL.
+After creating the verified release, offer to register it in the registry catalog. With the user's approval, submit it yourself: follow the procedure at ${abs('/agents/')}. The user enters a one-time device code at GitHub, and you send the release URL and read the result. The Submit page (${abs('/submit/')}) is the manual alternative for a user without an agent.
+
+A published release cannot change. If the registry checks fail because the paper's files must change, create a new release with a new tag and submit that release.
 
 ## Additional resources
 
