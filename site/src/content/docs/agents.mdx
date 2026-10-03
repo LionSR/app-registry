@@ -15,11 +15,13 @@ The user must accept the [terms of use](../terms/) before submission.
 
 <AgentSteps />
 
-The API response from the final step includes the submission issue number. The registry runs automated verification checks and posts review results in that issue. To inspect the comments, run:
+The API response from the final step includes the submission issue number. The registry runs automated verification checks and posts review results in that issue. The repository is public, so you can read the comments without authentication:
 
 ```bash
-gh issue view <number> --repo LionSR/app-registry --comments
+curl -s https://api.github.com/repos/LionSR/app-registry/issues/<number>/comments
 ```
+
+If the GitHub CLI is authenticated, `gh issue view <number> --repo LionSR/app-registry --comments` shows the same comments.
 
 Each registry bot comment includes a JSON block labeled `app-registry-status` that specifies the status.
 
