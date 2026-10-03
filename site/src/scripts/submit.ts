@@ -98,7 +98,7 @@ const RULES: [when: (s: State) => boolean, status: (s: State) => Status][] = [
 	[(s) => !s.termsAccepted, () => ({ tone: 'info', say: ['Accept the terms of use to submit.'] })],
 	// From here on the release can be submitted; a failed attempt can be retried.
 	[(s) => Boolean(s.sendError), (s) => ({ tone: 'error', say: [s.sendError], ready: true })],
-	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit release ${s.tag} of ${name(s)} as ${what(s)}. This release lacks an AGENTS.md file. Verification checks will fail.`], ready: true })],
+	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit release ${s.tag} of ${name(s)} as ${what(s)}. The preview could not find an AGENTS.md file. Verification checks may fail if the file is missing.`], ready: true })],
 	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit release ${s.tag} of ${name(s)} as ${what(s)}.`], ready: true })],
 ];
 
