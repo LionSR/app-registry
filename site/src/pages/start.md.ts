@@ -62,18 +62,18 @@ If you cannot install skills, read the skill files directly. Start with ${RAW}/p
 
 Open the directory containing the paper, code, and data. Execute the \`publish-paper\` skill (\`/publish-paper\` in Claude Code or \`$publish-paper\` in Codex).
 
-The workflow executes five steps:
-1. Reproduce results.
-2. Prepare staging.
-3. Define the paper agent.
-4. Validate publication assets.
-5. Create the GitHub release.
+The workflow coordinates five verification and release steps:
+1. **Reproduce results**: Verify computational derivations, execute code, and reproduce figures.
+2. **Prepare staging**: Organize file layout, software dependencies, and license declarations.
+3. **Define paper agent**: Compose \`AGENTS.md\` instructions and execution guidelines.
+4. **Validate publication**: Verify manifest structure, link integrity, and agent responsiveness.
+5. **Release outcome**: Freeze verified assets and create a tagged GitHub release with \`APP_PUBLICATION.json\`.
 
-The output is a public GitHub repository with a tagged release containing an \`APP_PUBLICATION.json\` manifest. This release is the official publication.
+Reconcile any verification discrepancies collaboratively with the user. Always request explicit confirmation before modifying repository files or publishing Git releases.
 
 ## 3. Register in the registry
 
-After the release is created, offer to register the publication. Follow the instructions at ${abs('/agents/')}. The user authenticates through GitHub with a one-time code, and the agent submits the release URL.
+After creating the verified release, offer to register it in the registry catalog. Follow the procedure at ${abs('/agents/')}. The user authenticates through GitHub using a one-time device code, and the agent submits the release URL.
 
 ## Additional resources
 

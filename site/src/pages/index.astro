@@ -11,9 +11,9 @@ const papers = await allPapers();
 
 <StarlightPage
 	frontmatter={{
-		title: 'Publish an AI agent with your paper.',
+		title: 'Publish an interactive AI agent with every paper.',
 		template: 'splash',
-		description: 'Research papers published with the Agentic Publication Protocol. Open any paper repository in an AI coding agent.',
+		description: 'Scientific papers published under the Agentic Publication Protocol. Open any repository in an AI coding agent.',
 		head: [{ tag: 'link', attrs: { rel: 'alternate', type: 'application/json', href: url('/papers/index.json') } }],
 	}}
 >
@@ -21,14 +21,15 @@ const papers = await allPapers();
 		<div class="intro">
 			<div>
 				<p class="lede">
-					Every paper in this registry includes an AI agent. Open a paper in Claude Code or Codex. Instruct the agent to
-					explain the work, reproduce figures, or run experiments. The agent answers using the paper, code, and data.
+					Each paper listed here includes an interactive AI agent. Open any repository in Claude Code or Codex to inspect
+					the research. Ask the agent to clarify derivations, reproduce figures, or run experiments directly from verified code
+					and data.
 				</p>
 				<div class="actions">
 					<LinkButton href={url('/publish/')} icon="right-arrow">Publish your paper</LinkButton>
 					<LinkButton href={url('/about/')} variant="secondary">Why APP</LinkButton>
 				</div>
-				<p class="agents">Using an AI coding agent? Instruct the agent to publish your paper following agenticpapers.app. For agent instructions, see <a href={url('/start.md')}>start.md</a>.</p>
+				<p class="agents">Using a coding agent? Ask it to publish your paper following agenticpapers.app. Agent instructions: <a href={url('/start.md')}>start.md</a>.</p>
 			</div>
 			<Video src="/media/app-promo.mp4" poster="/media/app-promo.jpg" label="APP in 70 seconds" />
 		</div>

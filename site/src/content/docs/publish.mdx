@@ -7,9 +7,11 @@ import { Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 
 Publishing includes two steps:
 1. Create a validated GitHub release in your repository with the APP plugin.
-2. Submit the release to this registry so readers can find your paper.
+2. Submit the release to this registry so researchers can find your paper.
 
-You can also instruct your AI coding agent to complete these steps: tell the agent to *publish my paper following agenticpapers.app*. The agent reads the [agent instructions](../start.md), requests permission to install the plugin, and starts the workflow.
+Your GitHub release serves as the primary publication and remains in your own repository. The registry listing provides discoverability and permanent indexing.
+
+You can also instruct your AI coding agent to execute these steps: tell the agent to *publish my paper following agenticpapers.app*. The agent inspects [agent instructions](../start.md), requests confirmation to install the plugin, and starts the workflow.
 
 These instructions align with the [APP protocol specification](https://github.com/LionSR/AgenticPublicationProtocol#install-and-update).
 
@@ -76,12 +78,19 @@ These instructions align with the [APP protocol specification](https://github.co
    </TabItem>
    </Tabs>
 
-   The agent guides you through the workflow. It verifies your results, organizes files, drafts `AGENTS.md`, and creates the release. The agent requests confirmation before each critical operation. You can pause the workflow and resume later. If you grant GitHub access, the agent creates the release automatically. Otherwise, the agent outputs the required Git commands.
+   The agent guides you through the verification and release workflow:
+   - Verifies code execution and reproduces manuscript figures.
+   - Identifies missing environment dependencies or data gaps.
+   - Collaborates with you to draft clear `AGENTS.md` instructions.
+   - Packages and validates publication artifacts.
+   - Creates the tagged GitHub release.
+
+   The agent requests confirmation before each critical operation or repository change. You can pause the workflow and resume in later sessions. If you grant GitHub access, the agent creates the release directly; otherwise, it provides the exact Git commands to run.
 
 </Steps>
 
-When the workflow finishes, your repository contains a new GitHub release. This release is your published paper. For detailed information, see the [publishing guide](../guides/publish/).
+When the workflow completes, your repository contains a new GitHub release with an `APP_PUBLICATION.json` manifest. This release is your official publication. For full details on the specification, see the [publishing guide](../guides/publish/).
 
 ## 2. Submit to the registry
 
-[Submit your release](../submit/) to the registry: sign in with GitHub and select the release. The registry verifies the release automatically. If checks pass, your paper appears in the registry immediately. If checks flag items, an editor reviews the submission. Submitting does not modify your repository.
+[Submit your release](../submit/) to the registry: sign in with GitHub and select your release. The registry executes automated verification checks immediately. If all checks pass, your paper appears in the registry right away. If an edge case requires manual adjudication, an editor inspects the submission. Submitting never modifies your repository.
