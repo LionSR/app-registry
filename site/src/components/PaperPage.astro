@@ -89,12 +89,12 @@ const showAffNo = affiliations.length > 1;
 				<TabItem label="Codex"><Code code={`${clone}\ncodex`} lang="bash" /></TabItem>
 			</Tabs>
 			<p>
-				These commands download the paper and start the agent in its folder. Then ask it anything about the work, or ask it
-				to reproduce a figure. Other coding agents work too.
+				These commands clone the repository and start the AI agent. Ask the agent to explain the research, reproduce
+				figures, or run experiments. The repository also supports other AI coding agents that read <code>AGENTS.md</code>.
 			</p>
 			<p>
-				Working in another project? With the <a href={url('/publish/')}>APP plugin</a>, run{' '}
-				<code>/load-paper {current.release_url}</code> to bring this paper into it.
+				To import this paper into another project, install the <a href={url('/publish/')}>APP plugin</a> and run{' '}
+				<code>/load-paper {current.release_url}</code>.
 			</p>
 			<a class="repo" href={paper.repo_url}>View the repository on GitHub</a>
 		</section>

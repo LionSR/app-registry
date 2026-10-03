@@ -81,25 +81,25 @@ const what = (s: State) => (s.listedAs ? `a new version of ${s.listedAs}` : 'a n
 const needsPermission = (s: State) => s.lookup === 'done' && s.eligible > 0 && !s.tagListed && !s.canWrite && !s.sent;
 
 const RULES: [when: (s: State) => boolean, status: (s: State) => Status][] = [
-	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted. You can follow the review ', { text: 'on GitHub', href: s.sent!.url }, '; GitHub notifies you when there is news.'] })],
+	[(s) => Boolean(s.sent), (s) => ({ tone: 'ok', say: ['Submitted. Track review status ', { text: 'on GitHub', href: s.sent!.url }, '. GitHub sends notification updates.'] })],
 	[(s) => s.sending, () => ({ tone: 'info', say: ['Submitting…'] })],
-	[(s) => !s.repo, () => ({ tone: 'info', say: ['Choose the repository of your paper.'] })],
-	[(s) => s.lookup === 'loading', (s) => ({ tone: 'info', say: [`Looking up ${name(s)}…`] })],
-	[(s) => s.lookup === 'not-found', (s) => ({ tone: 'error', say: [`We could not find ${name(s)}. It must be a public GitHub repository. Check the spelling, or paste its link.`] })],
-	[(s) => s.lookup === 'rate-limited', () => ({ tone: 'error', say: ['GitHub is limiting requests from this browser. Wait a minute and try again.'] })],
-	[(s) => s.lookup === 'failed', (s) => ({ tone: 'error', say: [`GitHub could not be reached for ${name(s)}. Try again in a minute.`] })],
+	[(s) => !s.repo, () => ({ tone: 'info', say: ['Select the repository for your paper.'] })],
+	[(s) => s.lookup === 'loading', (s) => ({ tone: 'info', say: [`Searching for ${name(s)}…`] })],
+	[(s) => s.lookup === 'not-found', (s) => ({ tone: 'error', say: [`Repository ${name(s)} was not found. Confirm the repository is public and correctly spelled, or paste the URL.`] })],
+	[(s) => s.lookup === 'rate-limited', () => ({ tone: 'error', say: ['GitHub API rate limit exceeded. Wait one minute and try again.'] })],
+	[(s) => s.lookup === 'failed', (s) => ({ tone: 'error', say: [`Cannot connect to GitHub for ${name(s)}. Wait one minute and try again.`] })],
 	[
 		(s) => !s.eligible && Boolean(s.forkOf),
-		(s) => ({ tone: 'warn', say: [`${name(s)} is a copy (fork) of ${s.forkOf} and has no release to submit. The paper is usually released from the original. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
+		(s) => ({ tone: 'warn', say: [`${name(s)} is a fork of ${s.forkOf} with no valid releases. Publish releases from the source repository. `, { text: `Use ${s.forkOf}`, onClick: () => chooseRepo(s.forkOf) }] }),
 	],
-	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no APP release yet, so there is nothing to submit. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '.'] })],
+	[(s) => !s.eligible, (s) => ({ tone: 'warn', say: [`${name(s)} has no APP releases available to submit. `, { text: 'Publish the paper first', href: `${BASE}/publish/` }, '.'] })],
 	[(s) => s.tagListed, (s) => ({ tone: 'info', say: [`This version is already listed as ${s.listedAs}. `, { text: 'View the paper', href: `${BASE}/papers/${s.listedAs}/` }, '.'] })],
-	[(s) => needsPermission(s) && !s.authorsPermission, (s) => ({ tone: 'warn', say: [`You (@${s.login}) cannot make changes to ${name(s)}. Sign in with an account that can, or confirm above that the authors agreed.`] })],
-	[(s) => !s.termsAccepted, () => ({ tone: 'info', say: ['Agree to the terms of use to submit.'] })],
+	[(s) => needsPermission(s) && !s.authorsPermission, (s) => ({ tone: 'warn', say: [`Account @${s.login} does not have write access to ${name(s)}. Sign in with an authorized account, or confirm author permission above.`] })],
+	[(s) => !s.termsAccepted, () => ({ tone: 'info', say: ['Accept the terms of use to submit.'] })],
 	// From here on the release can be submitted; a failed attempt can be retried.
 	[(s) => Boolean(s.sendError), (s) => ({ tone: 'error', say: [s.sendError], ready: true })],
-	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit ${s.tag} of ${name(s)} as ${what(s)}. This release has no AGENTS.md file, so it will probably not pass the checks.`], ready: true })],
-	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit ${s.tag} of ${name(s)} as ${what(s)}.`], ready: true })],
+	[(s) => s.agentsMd === 'missing', (s) => ({ tone: 'warn', say: [`Ready to submit release ${s.tag} of ${name(s)} as ${what(s)}. This release lacks an AGENTS.md file. Verification checks will fail.`], ready: true })],
+	[() => true, (s) => ({ tone: 'ok', say: [`Ready to submit release ${s.tag} of ${name(s)} as ${what(s)}.`], ready: true })],
 ];
 
 function show(el: HTMLElement, parts: Part[]) {
@@ -118,7 +118,7 @@ function render() {
 	// Signed out: only the sign-in step. Signed in: only the form.
 	signinStep.hidden = Boolean(state.login);
 	form.hidden = !state.login;
-	const signinMessage = !state.configured ? 'Sign-in is temporarily unavailable, so submissions are paused. Please try again later.' : state.signinError;
+	const signinMessage = !state.configured ? 'Sign-in is temporarily unavailable. Submissions are paused. Try again later.' : state.signinError;
 	signinStatus.hidden = !signinMessage;
 	signinStatus.dataset.tone = state.configured ? 'error' : 'warn';
 	signinStatus.textContent = signinMessage;
@@ -127,9 +127,9 @@ function render() {
 
 	// What GitHub reports about the signed-in account's access to the chosen repository.
 	access.hidden = !(state.login && state.lookup === 'done');
-	access.textContent = state.canWrite ? `✓ You can make changes to this repository.` : `You cannot make changes to this repository.`;
+	access.textContent = state.canWrite ? `✓ You have write access to this repository.` : `You do not have write access to this repository.`;
 	permissionRow.hidden = !needsPermission(state);
-	permissionWhy.textContent = `You cannot make changes to ${name(state)}, so an editor will check this with the authors.`;
+	permissionWhy.textContent = `Account @${state.login} does not have write access to ${name(state)}. An editor will verify author permission.`;
 
 	const { tone, say, ready = false } = RULES.find(([when]) => when(state))![1](state);
 	statusBox.dataset.tone = tone;

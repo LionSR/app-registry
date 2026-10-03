@@ -1,37 +1,41 @@
 ---
 title: Terms of use
-description: The terms you accept when you submit a paper to the APP registry.
+description: Terms accepted during paper submission to the APP registry.
 ---
 
-These terms apply when you submit a paper to the APP registry. Version 2026-09-24. Each submission records the version the submitter accepted.
+These terms apply to all paper submissions to the APP registry. Version: 2026-09-24. Each submission records the accepted terms version.
 
-## What the registry is
+## Registry overview
 
-The registry is a public list of papers published with the Agentic Publication Protocol. Each entry points to a release in the authors' own GitHub repository. Being listed means the release passed the registry's automated checks and an editor approved it. It is not peer review, and the registry does not vouch for the paper's scientific content.
+The registry is a public catalog of papers published with the Agentic Publication Protocol. Each entry links to a release in the authors' GitHub repository.
 
-## What you confirm when you submit
+A registry listing indicates that the release passed automated verification checks and received editorial approval. A listing is not peer review. The registry does not validate scientific claims.
 
-- You can write to the paper's repository, or you have the authors' permission to submit the release.
-- You have the right to share the release, and the listing will not infringe anyone else's rights.
-- The paper, code and data in the release are the authors' responsibility. Their licenses are the ones in the repository.
+## Submitter confirmation
 
-## What the registry publishes
+When you submit a paper, you confirm that:
+- You have write access to the paper repository, or you have authorization from the authors to submit.
+- You have the legal right to distribute the release. The listing does not violate third-party rights.
+- The authors remain responsible for all paper content, code, and data. The repository license governs the use of those materials.
 
-- An entry for the paper, with fields copied from the release as it is: title, authors, affiliations, GitHub usernames, domain, arXiv ID, tags and the paper summary from `AGENTS.md`, and the release tag, commit and publication ID.
-- The review discussion on GitHub, including your GitHub username.
+## Published information
 
-## Your GitHub sign-in
+The registry publishes:
+- A paper catalog entry containing metadata extracted directly from the release: title, authors, affiliations, GitHub usernames, research domain, arXiv ID, tags, `AGENTS.md` paper summary, release tag, commit hash, and publication ID.
+- The public review issue on GitHub, including your GitHub username.
 
-The registry reads your GitHub username and whether you can write to the repository you submit. It requests no other access. Your sign-in stays in your browser tab and is not stored by the registry.
+## Authentication
 
-## Editors
+The registry reads only your GitHub username and your repository write permissions. The registry requests no additional permissions. Your authentication token remains in your browser session. The registry does not store your token on a server.
 
-Editors may approve or decline a submission, and may correct or remove a listing, for example at the authors' request, when a release is withdrawn, or in case of misuse. The ID of a removed listing is not reused.
+## Editorial policy
+
+Editors can approve or decline submissions. Editors can update or remove listings upon author request, upon release withdrawal, or after policy violations. The registry does not reassign retired publication IDs.
 
 ## No warranty
 
-The registry is provided as is, without warranty of any kind. Its maintainers are not liable for the content of listed papers or for the availability of the registry.
+The registry is provided as is, without warranty of any kind. Registry maintainers are not liable for paper content or service availability.
 
 ## Changes and contact
 
-These terms may change. The version accepted is recorded with each submission. For questions, or to ask for a correction or removal, open an issue in the [APP protocol repository](https://github.com/LionSR/AgenticPublicationProtocol/issues).
+These terms are subject to change. Each submission records the accepted version. To ask questions, request corrections, or request listing removals, open an issue in the [APP protocol repository](https://github.com/LionSR/AgenticPublicationProtocol/issues).

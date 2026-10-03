@@ -1,32 +1,33 @@
 # APP registry
 
-The website and paper registry for the [Agentic Publication Protocol](https://github.com/LionSR/AgenticPublicationProtocol), served at <https://agenticpapers.app>.
+The website and paper registry for the [Agentic Publication Protocol](https://github.com/LionSR/AgenticPublicationProtocol), hosted at <https://agenticpapers.app>.
 
-- `registry/`: one JSON file per listed paper, plus the scripts that verify a release and write its entry. See [registry/README.md](registry/README.md).
-- `site/`: the Astro + Starlight website. The papers listing is built from `registry/entries/`, and the protocol docs are generated from the `protocol/` submodule. See [site/README.md](site/README.md).
-- `submit/`: the stateless submit endpoint (a Supabase Edge Function). See [submit/README.md](submit/README.md).
-- `protocol/`: the protocol repository as a git submodule. It supplies `PROTOCOL.md`, the README sections shown on the site, and the release checks in `scripts/app_discussion_bot.py`.
+- `registry/`: Stores one JSON file for each listed paper and verification scripts. See [registry/README.md](registry/README.md).
+- `site/`: The Astro and Starlight website. The paper catalog builds from `registry/entries/`. Protocol documentation generates from the `protocol/` submodule. See [site/README.md](site/README.md).
+- `submit/`: The stateless submission endpoint (Supabase Edge Function). See [submit/README.md](submit/README.md).
+- `protocol/`: Git submodule containing the protocol specification, documentation source files, and verification scripts.
 
 ```bash
 git clone --recurse-submodules https://github.com/LionSR/app-registry.git
 cd app-registry/site && npm install && npm run build
 ```
 
-## Submitting
+## Submissions
 
-Authors submit a published APP release on the website's Submit page. Agents call the same endpoint with their GitHub CLI token:
+Authors submit a published APP release on the website Submit page. AI coding agents submit to the same endpoint with a GitHub token:
 
 ```bash
 curl -X POST https://<project-ref>.supabase.co/functions/v1/registry/submit \
   -H "Authorization: Bearer $(gh auth token)" \
   -H "Content-Type: application/json" \
-  -d '{"release_url": "https://github.com/owner/repo/releases/tag/v1.0.0", "relationship": "author"}'
+  -d '{"release_url": "https://github.com/owner/repo/releases/tag/v1.0.0", "accept_terms": true}'
 ```
 
-Either way, the registry's GitHub App opens a submission issue here. The workflow in `.github/workflows/submission.yml` runs the checks and posts the result, ending each comment with a `json app-registry-status` block that agents can parse. In that issue:
+The registry GitHub App creates a submission issue in this repository. The GitHub Actions workflow in `.github/workflows/submission.yml` runs verification checks and posts the results. Each bot comment includes an `app-registry-status` JSON block for machine parsing.
 
-- the submitter or an editor comments `/recheck` to run the checks again
-- an editor (listed in `registry/editors.txt`) comments `/accept` to list the paper, or `/decline <reason>`
-- anyone involved replies to discuss the review
+In the submission issue:
+- The submitter or an editor can comment `/recheck` to rerun the verification checks.
+- An editor (listed in `registry/editors.txt`) can comment `/accept` to list the paper, or `/decline <reason>` to decline.
+- Participants can post comments to discuss the review.
 
-Issues not opened by the app are ignored.
+The system ignores issues not created by the registry GitHub App.

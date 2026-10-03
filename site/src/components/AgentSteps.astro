@@ -19,18 +19,18 @@ const submit = `curl -s -X POST ${api}/submit \\
 
 <ol>
 	<li>
-		<p>Ask GitHub for a sign-in code for the registry. The reply has a <code>device_code</code>, a <code>user_code</code> and an <code>interval</code> in seconds.</p>
+		<p>Request a device code from GitHub for the registry. The response contains a <code>device_code</code>, a <code>user_code</code>, and an <code>interval</code> in seconds.</p>
 		<Code code={ask} lang="bash" />
 	</li>
 	<li>
-		<p>Ask the person to open <a href="https://github.com/login/device">github.com/login/device</a>, sign in, and enter the <code>user_code</code>. GitHub shows them that the registry asks for no access beyond their public profile.</p>
+		<p>Instruct the user to open <a href="https://github.com/login/device">github.com/login/device</a>, sign in, and enter the <code>user_code</code>. The registry requests read access only to public profile information and repository permissions.</p>
 	</li>
 	<li>
-		<p>Exchange the device code for a token. Repeat every <code>interval</code> seconds while the reply says <code>authorization_pending</code>, until it contains <code>access_token</code>.</p>
+		<p>Exchange the device code for an access token. Repeat the request every <code>interval</code> seconds while the response status is <code>authorization_pending</code>, until GitHub returns an <code>access_token</code>.</p>
 		<Code code={exchange} lang="bash" />
 	</li>
 	<li>
-		<p>Submit the release. Send <code>"accept_terms": true</code> only if the person agrees to the terms of use. If they cannot write to the paper's repository, also send <code>"authors_permission": true</code>, and only if they confirm they have the authors' permission.</p>
+		<p>Submit the release URL. Set <code>"accept_terms": true</code> only after the user accepts the terms of use. If the user does not have write access to the paper repository, set <code>"authors_permission": true</code> only after the user confirms author approval.</p>
 		<Code code={submit} lang="bash" />
 	</li>
 </ol>

@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { url } from '../lib/url';
 
-// Instructions for a coding agent whose person asked it to publish a paper "following agenticpapers.app".
-// Linked from llms.txt, the home page and the Publish page. The install commands mirror publish.mdx.
+// Instructions for an AI coding agent requested to publish research following agenticpapers.app.
+// Linked from llms.txt, the home page, and the Publish page.
 const PROTOCOL = 'LionSR/AgenticPublicationProtocol';
 const RAW = `https://raw.githubusercontent.com/${PROTOCOL}/main/skills`;
 
@@ -10,44 +10,45 @@ export const GET: APIRoute = ({ site }) => {
 	const abs = (path: string) => (site ? new URL(url(path), site).href : url(path));
 	const text = `# Publishing a paper with APP: instructions for coding agents
 
-This page is for a coding agent whose person asked it to publish their work following agenticpapers.app.
+This document provides instructions for an AI coding agent requested to publish research following agenticpapers.app.
 
-The Agentic Publication Protocol (APP) publishes a finished paper as a GitHub release that any coding agent can open and explain: paper, code, data, and an \`AGENTS.md\` for the reader's agent. The work is done by the APP skills, which run inside your agent. Publishing has two parts:
+The Agentic Publication Protocol (APP) packages a paper, code, data, and an \`AGENTS.md\` instructions file into a GitHub release.
 
-1. **Publish**: the \`publish-paper\` skill turns the person's working folder into a validated APP release on GitHub, in their own repository.
-2. **Register** (optional): list that release in the registry at ${abs('/')}, so readers can find it.
+Publishing includes two stages:
+1. **Publish**: The \`publish-paper\` skill converts the project directory into a validated GitHub release in the author repository.
+2. **Register** (optional): Add the release to the registry at ${abs('/')} to make the paper discoverable.
 
-Ask the person before installing anything, and before every step that creates or changes something on GitHub. The skills ask for these approvals too.
+Request user approval before you install software or make changes on GitHub. The APP skills also prompt for user confirmation.
 
 ## 1. Install the APP skills
 
-The skills are in the GitHub repository ${PROTOCOL}, packaged as the plugin \`paper-protocol\`. Check first whether they are already available to you (a \`publish-paper\` skill).
+The skills are located in the GitHub repository \`${PROTOCOL}\` as the \`paper-protocol\` plugin. Verify if the \`publish-paper\` skill is already available in your environment.
 
 ### Claude Code
 
-Run in a shell:
+Run these commands in your shell:
 
 \`\`\`bash
 claude plugin marketplace add ${PROTOCOL}
 claude plugin install paper-protocol@paper-protocol
 \`\`\`
 
-Then ask the person to type \`/reload-plugins\` at the Claude Code prompt, or to start a new session. The skills are not available in the current session until then.
+Ask the user to run \`/reload-plugins\` at the Claude Code prompt or restart the session. The skills become active after reload.
 
 ### Codex
 
-Run in a shell:
+Run these commands in your shell:
 
 \`\`\`bash
 codex plugin marketplace add ${PROTOCOL}
 codex plugin add paper-protocol@paper-protocol
 \`\`\`
 
-These need network access and write to the Codex configuration outside the working folder, so they may need the person's approval to run outside the sandbox. Then ask the person to start a new Codex session.
+These commands require network access and configuration file modifications. Request user approval if operating in a sandbox. Then ask the user to start a new Codex session.
 
 ### Other agents
 
-The skills are plain Agent Skills folders (each with a \`SKILL.md\`) under \`skills/\` in the repository. Clone it and make the folders available where your agent loads skills, following your agent's documentation:
+The skills are standard Agent Skills folders (each contains a \`SKILL.md\`) in \`skills/\` in the repository. Clone the repository and configure your agent to load the skills:
 
 \`\`\`bash
 git clone https://github.com/${PROTOCOL}.git
@@ -55,23 +56,30 @@ git clone https://github.com/${PROTOCOL}.git
 
 ### Without installing
 
-If you cannot install skills, read them directly and follow them. Start with ${RAW}/publish-paper/SKILL.md. It calls step skills by name; each is at ${RAW}/<name>/SKILL.md, and files they mention sit next to them.
+If you cannot install skills, read the skill files directly. Start with ${RAW}/publish-paper/SKILL.md. That file references modular step skills located at ${RAW}/<name>/SKILL.md.
 
 ## 2. Publish
 
-Open the person's working folder (their paper, code and data) and run the \`publish-paper\` skill: \`/publish-paper\` in Claude Code, \`$publish-paper\` in Codex. It walks through five steps (reproduce results, prepare staging, define the paper agent, validate, release) and can span several sessions.
+Open the directory containing the paper, code, and data. Execute the \`publish-paper\` skill (\`/publish-paper\` in Claude Code or \`$publish-paper\` in Codex).
 
-The result is a public GitHub repository with a tagged release that carries an \`APP_PUBLICATION.json\` asset. That release is the publication.
+The workflow executes five steps:
+1. Reproduce results.
+2. Prepare staging.
+3. Define the paper agent.
+4. Validate publication assets.
+5. Create the GitHub release.
+
+The output is a public GitHub repository with a tagged release containing an \`APP_PUBLICATION.json\` manifest. This release is the official publication.
 
 ## 3. Register in the registry
 
-Only after that release exists, offer to list it here. Follow ${abs('/agents/')}: the person signs in with GitHub using a one-time code, and you submit the release URL. If the plugin has the \`register-paper\` skill, it does the same.
+After the release is created, offer to register the publication. Follow the instructions at ${abs('/agents/')}. The user authenticates through GitHub with a one-time code, and the agent submits the release URL.
 
-## More
+## Additional resources
 
-- Human guide: ${abs('/publish/')}
-- Protocol: ${abs('/protocol/latest/')}
-- Registered papers: ${abs('/papers/index.json')}
+- Author guide: ${abs('/publish/')}
+- Protocol specification: ${abs('/protocol/latest/')}
+- Registered papers index: ${abs('/papers/index.json')}
 `;
 	return new Response(text, { headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });
 };
