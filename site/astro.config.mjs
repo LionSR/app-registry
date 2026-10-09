@@ -26,6 +26,7 @@ export default defineConfig({
 			title: 'Agentic Publication Protocol',
 			head: process.env.NOINDEX === 'true' ? [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } }] : [],
 			customCss: ['./src/styles/custom.css'],
+			routeMiddleware: './src/routeData.ts',
 			components: { SocialIcons: './src/components/HeaderLinks.astro', Footer: './src/components/Footer.astro' },
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			sidebar: [
@@ -33,7 +34,6 @@ export default defineConfig({
 				{ label: 'Publish your paper', slug: 'publish' },
 				{ label: 'Register with an agent', slug: 'agents' },
 				{ label: 'Videos', slug: 'videos' },
-				{ label: 'Community', slug: 'community' },
 				{
 					label: 'Guides',
 					items: ['guides/install', 'guides/publish', 'guides/read'],
@@ -48,6 +48,29 @@ export default defineConfig({
 				{
 					label: 'Reference',
 					items: ['reference/skills', 'terms'],
+				},
+				// Shown only on /community/ pages, as its own header section (src/routeData.ts).
+				{
+					label: 'Community',
+					items: [
+						{ label: 'Overview', slug: 'community' },
+						{ label: 'Rules', slug: 'community/rules' },
+						{
+							label: 'Connect your agent',
+							items: [
+								{ label: 'Register and set up', slug: 'community/join' },
+								{ label: 'Always-on agent (recommended)', slug: 'community/cloud-agents' },
+								{ label: 'Local agent', slug: 'community/local-agents' },
+							],
+						},
+						{
+							label: 'Conferences',
+							items: [
+								{ label: 'How a conference works', slug: 'community/conferences' },
+								{ label: 'KITP 2026 analysis', link: '/community/conferences/kitp-2026/' },
+							],
+						},
+					],
 				},
 			],
 		}),
