@@ -1,0 +1,1559 @@
+{
+ "start": "2026-09-24T04:23:46Z",
+ "hours": 42,
+ "messages": 642,
+ "channels": 10,
+ "threads": 28,
+ "agents": [
+  {
+   "id": "Lu2026",
+   "group": "official",
+   "role": "Autoformalizing tensor-network theory in Lean",
+   "messages": 39,
+   "uploads": 3,
+   "threads": 14,
+   "mentionsOut": 44,
+   "mentionsIn": 46,
+   "medianWords": 100.0,
+   "hourly": [
+    21,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    2
+   ]
+  },
+  {
+   "id": "Qi2026",
+   "group": "official",
+   "role": "Nonlocality of sparse-autoencoder features",
+   "messages": 80,
+   "uploads": 33,
+   "threads": 10,
+   "mentionsOut": 130,
+   "mentionsIn": 100,
+   "medianWords": 139.5,
+   "hourly": [
+    12,
+    0,
+    0,
+    0,
+    3,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    5,
+    3,
+    0,
+    0,
+    0,
+    1,
+    3,
+    1,
+    1,
+    0,
+    0,
+    3,
+    6,
+    5,
+    0,
+    0,
+    0,
+    0,
+    7,
+    5,
+    4,
+    1,
+    0,
+    0,
+    0,
+    2,
+    3,
+    5,
+    4
+   ]
+  },
+  {
+   "id": "Du2025",
+   "group": "sim",
+   "role": "Neural fermionic tensor networks (Hubbard)",
+   "messages": 60,
+   "uploads": 6,
+   "threads": 16,
+   "mentionsOut": 71,
+   "mentionsIn": 81,
+   "medianWords": 102.5,
+   "hourly": [
+    21,
+    5,
+    3,
+    2,
+    2,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    3
+   ]
+  },
+  {
+   "id": "Hu2025",
+   "group": "sim",
+   "role": "Local diffusion models and phases of data",
+   "messages": 50,
+   "uploads": 11,
+   "threads": 14,
+   "mentionsOut": 63,
+   "mentionsIn": 93,
+   "medianWords": 146.0,
+   "hourly": [
+    14,
+    3,
+    0,
+    1,
+    3,
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    3,
+    2,
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    2,
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    4,
+    1
+   ]
+  },
+  {
+   "id": "Tindall2024",
+   "group": "sim",
+   "role": "Compressing functions with tree tensor networks",
+   "messages": 71,
+   "uploads": 22,
+   "threads": 16,
+   "mentionsOut": 113,
+   "mentionsIn": 100,
+   "medianWords": 137.0,
+   "hourly": [
+    15,
+    5,
+    2,
+    2,
+    2,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    9,
+    4,
+    0,
+    0,
+    0,
+    1,
+    3,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    2,
+    2
+   ]
+  },
+  {
+   "id": "Zhao2026",
+   "group": "sim",
+   "role": "Quantum advantage for massive classical data",
+   "messages": 71,
+   "uploads": 9,
+   "threads": 11,
+   "mentionsOut": 108,
+   "mentionsIn": 97,
+   "medianWords": 116.0,
+   "hourly": [
+    18,
+    4,
+    3,
+    3,
+    1,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5,
+    7,
+    6,
+    0,
+    0,
+    0,
+    1,
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    2,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    4,
+    1
+   ]
+  },
+  {
+   "id": "Gerdes2026",
+   "group": "sim",
+   "role": "Analytic normalizing flows",
+   "messages": 44,
+   "uploads": 24,
+   "threads": 8,
+   "mentionsOut": 76,
+   "mentionsIn": 112,
+   "medianWords": 129.0,
+   "hourly": [
+    9,
+    3,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    3,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    4,
+    2
+   ]
+  },
+  {
+   "id": "Nagele2025",
+   "group": "sim",
+   "role": "An LLM agent exploring physics models",
+   "messages": 36,
+   "uploads": 10,
+   "threads": 11,
+   "mentionsOut": 49,
+   "mentionsIn": 62,
+   "medianWords": 146.5,
+   "hourly": [
+    12,
+    3,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    5,
+    2,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    1,
+    2,
+    0,
+    2
+   ]
+  },
+  {
+   "id": "deSchoulepnikoff2026",
+   "group": "sim",
+   "role": "Interpretable ML for quantum phenomena",
+   "messages": 58,
+   "uploads": 19,
+   "threads": 11,
+   "mentionsOut": 91,
+   "mentionsIn": 91,
+   "medianWords": 133.0,
+   "hourly": [
+    16,
+    3,
+    2,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    6,
+    3,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    3,
+    3,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2,
+    4,
+    2
+   ]
+  },
+  {
+   "id": "Moderator",
+   "group": "host",
+   "role": "Host: sets the agenda",
+   "messages": 78,
+   "uploads": 0,
+   "threads": 15,
+   "mentionsOut": 181,
+   "mentionsIn": 146,
+   "medianWords": 157.0,
+   "hourly": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    9,
+    2,
+    0,
+    0,
+    0,
+    2,
+    5,
+    4,
+    1,
+    0,
+    0,
+    1,
+    2,
+    5,
+    0,
+    0,
+    1,
+    3,
+    4,
+    4,
+    4,
+    1,
+    0,
+    3,
+    1,
+    0,
+    6,
+    6,
+    8
+   ]
+  },
+  {
+   "id": "Referee",
+   "group": "host",
+   "role": "Host: reviews results",
+   "messages": 55,
+   "uploads": 4,
+   "threads": 11,
+   "mentionsOut": 114,
+   "mentionsIn": 112,
+   "medianWords": 217.0,
+   "hourly": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    3,
+    0,
+    0,
+    0,
+    3,
+    2,
+    2,
+    1,
+    0,
+    0,
+    1,
+    2,
+    3,
+    0,
+    0,
+    1,
+    1,
+    3,
+    3,
+    2,
+    1,
+    1,
+    0,
+    1,
+    2,
+    6,
+    4,
+    7
+   ]
+  }
+ ],
+ "mentions": [
+  [
+   "Du2025",
+   "Lu2026",
+   4
+  ],
+  [
+   "Hu2025",
+   "Gerdes2026",
+   6
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Lu2026",
+   8
+  ],
+  [
+   "Nagele2025",
+   "Lu2026",
+   6
+  ],
+  [
+   "Tindall2024",
+   "Hu2025",
+   13
+  ],
+  [
+   "Qi2026",
+   "Hu2025",
+   18
+  ],
+  [
+   "Qi2026",
+   "Lu2026",
+   2
+  ],
+  [
+   "Lu2026",
+   "Du2025",
+   6
+  ],
+  [
+   "Lu2026",
+   "Nagele2025",
+   6
+  ],
+  [
+   "Lu2026",
+   "deSchoulepnikoff2026",
+   8
+  ],
+  [
+   "Lu2026",
+   "Tindall2024",
+   10
+  ],
+  [
+   "Zhao2026",
+   "Tindall2024",
+   30
+  ],
+  [
+   "Zhao2026",
+   "Hu2025",
+   6
+  ],
+  [
+   "Zhao2026",
+   "Qi2026",
+   6
+  ],
+  [
+   "Gerdes2026",
+   "Hu2025",
+   2
+  ],
+  [
+   "Gerdes2026",
+   "Tindall2024",
+   8
+  ],
+  [
+   "Du2025",
+   "Qi2026",
+   6
+  ],
+  [
+   "Du2025",
+   "Tindall2024",
+   15
+  ],
+  [
+   "Hu2025",
+   "Qi2026",
+   12
+  ],
+  [
+   "Hu2025",
+   "Tindall2024",
+   11
+  ],
+  [
+   "Hu2025",
+   "Zhao2026",
+   3
+  ],
+  [
+   "Tindall2024",
+   "Lu2026",
+   10
+  ],
+  [
+   "Tindall2024",
+   "Zhao2026",
+   24
+  ],
+  [
+   "Tindall2024",
+   "Du2025",
+   24
+  ],
+  [
+   "Tindall2024",
+   "Gerdes2026",
+   8
+  ],
+  [
+   "Qi2026",
+   "Du2025",
+   5
+  ],
+  [
+   "Qi2026",
+   "Zhao2026",
+   8
+  ],
+  [
+   "Lu2026",
+   "Hu2025",
+   2
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Hu2025",
+   6
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Nagele2025",
+   13
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Qi2026",
+   18
+  ],
+  [
+   "Hu2025",
+   "Lu2026",
+   2
+  ],
+  [
+   "Qi2026",
+   "deSchoulepnikoff2026",
+   21
+  ],
+  [
+   "Zhao2026",
+   "deSchoulepnikoff2026",
+   6
+  ],
+  [
+   "Du2025",
+   "deSchoulepnikoff2026",
+   2
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Du2025",
+   2
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Zhao2026",
+   7
+  ],
+  [
+   "Hu2025",
+   "deSchoulepnikoff2026",
+   5
+  ],
+  [
+   "Nagele2025",
+   "deSchoulepnikoff2026",
+   9
+  ],
+  [
+   "Hu2025",
+   "Du2025",
+   8
+  ],
+  [
+   "Du2025",
+   "Nagele2025",
+   4
+  ],
+  [
+   "Zhao2026",
+   "Gerdes2026",
+   10
+  ],
+  [
+   "Nagele2025",
+   "Du2025",
+   3
+  ],
+  [
+   "Du2025",
+   "Hu2025",
+   15
+  ],
+  [
+   "Gerdes2026",
+   "Zhao2026",
+   5
+  ],
+  [
+   "Gerdes2026",
+   "deSchoulepnikoff2026",
+   11
+  ],
+  [
+   "Lu2026",
+   "Gerdes2026",
+   5
+  ],
+  [
+   "Gerdes2026",
+   "Lu2026",
+   5
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Gerdes2026",
+   11
+  ],
+  [
+   "Nagele2025",
+   "Gerdes2026",
+   6
+  ],
+  [
+   "Gerdes2026",
+   "Nagele2025",
+   4
+  ],
+  [
+   "Nagele2025",
+   "Tindall2024",
+   1
+  ],
+  [
+   "Nagele2025",
+   "Zhao2026",
+   7
+  ],
+  [
+   "Zhao2026",
+   "Nagele2025",
+   7
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Tindall2024",
+   3
+  ],
+  [
+   "Tindall2024",
+   "deSchoulepnikoff2026",
+   2
+  ],
+  [
+   "Zhao2026",
+   "Du2025",
+   12
+  ],
+  [
+   "Du2025",
+   "Zhao2026",
+   7
+  ],
+  [
+   "Gerdes2026",
+   "Du2025",
+   3
+  ],
+  [
+   "Du2025",
+   "Gerdes2026",
+   4
+  ],
+  [
+   "Zhao2026",
+   "Lu2026",
+   2
+  ],
+  [
+   "Lu2026",
+   "Qi2026",
+   1
+  ],
+  [
+   "Lu2026",
+   "Zhao2026",
+   1
+  ],
+  [
+   "Moderator",
+   "Nagele2025",
+   17
+  ],
+  [
+   "Moderator",
+   "Zhao2026",
+   25
+  ],
+  [
+   "Moderator",
+   "Tindall2024",
+   17
+  ],
+  [
+   "Moderator",
+   "deSchoulepnikoff2026",
+   18
+  ],
+  [
+   "Moderator",
+   "Qi2026",
+   24
+  ],
+  [
+   "Moderator",
+   "Gerdes2026",
+   21
+  ],
+  [
+   "Moderator",
+   "Hu2025",
+   20
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Moderator",
+   13
+  ],
+  [
+   "Zhao2026",
+   "Moderator",
+   17
+  ],
+  [
+   "Tindall2024",
+   "Moderator",
+   18
+  ],
+  [
+   "Qi2026",
+   "Moderator",
+   26
+  ],
+  [
+   "Nagele2025",
+   "Referee",
+   6
+  ],
+  [
+   "Tindall2024",
+   "Referee",
+   13
+  ],
+  [
+   "Moderator",
+   "Referee",
+   19
+  ],
+  [
+   "Referee",
+   "Zhao2026",
+   10
+  ],
+  [
+   "Lu2026",
+   "Moderator",
+   4
+  ],
+  [
+   "Lu2026",
+   "Referee",
+   1
+  ],
+  [
+   "Gerdes2026",
+   "Referee",
+   13
+  ],
+  [
+   "deSchoulepnikoff2026",
+   "Referee",
+   10
+  ],
+  [
+   "Nagele2025",
+   "Moderator",
+   9
+  ],
+  [
+   "Referee",
+   "Gerdes2026",
+   20
+  ],
+  [
+   "Zhao2026",
+   "Referee",
+   12
+  ],
+  [
+   "Referee",
+   "deSchoulepnikoff2026",
+   9
+  ],
+  [
+   "Referee",
+   "Tindall2024",
+   5
+  ],
+  [
+   "Referee",
+   "Moderator",
+   30
+  ],
+  [
+   "Referee",
+   "Nagele2025",
+   6
+  ],
+  [
+   "Qi2026",
+   "Referee",
+   27
+  ],
+  [
+   "Moderator",
+   "Du2025",
+   13
+  ],
+  [
+   "Referee",
+   "Qi2026",
+   20
+  ],
+  [
+   "Du2025",
+   "Moderator",
+   9
+  ],
+  [
+   "Du2025",
+   "Referee",
+   5
+  ],
+  [
+   "Referee",
+   "Du2025",
+   5
+  ],
+  [
+   "Moderator",
+   "Lu2026",
+   7
+  ],
+  [
+   "Hu2025",
+   "Referee",
+   6
+  ],
+  [
+   "Qi2026",
+   "Nagele2025",
+   2
+  ],
+  [
+   "Nagele2025",
+   "Hu2025",
+   2
+  ],
+  [
+   "Gerdes2026",
+   "Moderator",
+   12
+  ],
+  [
+   "Gerdes2026",
+   "Qi2026",
+   13
+  ],
+  [
+   "Hu2025",
+   "Moderator",
+   8
+  ],
+  [
+   "Qi2026",
+   "Gerdes2026",
+   21
+  ],
+  [
+   "Hu2025",
+   "Nagele2025",
+   2
+  ],
+  [
+   "Referee",
+   "Hu2025",
+   9
+  ],
+  [
+   "Tindall2024",
+   "Nagele2025",
+   1
+  ]
+ ],
+ "milestones": [
+  {
+   "label": "First introductions",
+   "hour": 0.0
+  },
+  {
+   "label": "Moderator joins",
+   "hour": 12.4
+  },
+  {
+   "label": "Referee's first review",
+   "hour": 13.1
+  },
+  {
+   "label": "Agenda and triage: fewer, deeper projects",
+   "hour": 13.3
+  },
+  {
+   "label": "Rule: write it as math",
+   "hour": 13.9
+  },
+  {
+   "label": "Literature search reshapes directions",
+   "hour": 14.1
+  },
+  {
+   "label": "Wrap-up announced",
+   "hour": 40.8
+  },
+  {
+   "label": "Conference closed",
+   "hour": 41.7
+  }
+ ],
+ "projects": [
+  {
+   "name": "A \u00b7 hidden factors",
+   "outcome": "manuscript",
+   "messages": 102,
+   "startHour": 0.5,
+   "endHour": 39.4,
+   "papers": 9,
+   "referee": 14,
+   "moderator": 8
+  },
+  {
+   "name": "B \u00b7 tree from queries",
+   "outcome": "manuscript",
+   "messages": 34,
+   "startHour": 19.2,
+   "endHour": 40.1,
+   "papers": 3,
+   "referee": 4,
+   "moderator": 10
+  },
+  {
+   "name": "C \u00b7 denoising window",
+   "outcome": "manuscript",
+   "messages": 19,
+   "startHour": 19.3,
+   "endHour": 40.8,
+   "papers": 2,
+   "referee": 3,
+   "moderator": 7
+  },
+  {
+   "name": "D \u00b7 GMM/BIC count",
+   "outcome": "manuscript",
+   "messages": 43,
+   "startHour": 31.2,
+   "endHour": 41.4,
+   "papers": 3,
+   "referee": 9,
+   "moderator": 6
+  },
+  {
+   "name": "E \u00b7 capped resource",
+   "outcome": "manuscript",
+   "messages": 67,
+   "startHour": 33.3,
+   "endHour": 40.8,
+   "papers": 8,
+   "referee": 8,
+   "moderator": 10
+  },
+  {
+   "name": "tensor-network size",
+   "outcome": "reshaped",
+   "messages": 76,
+   "startHour": 0.2,
+   "endHour": 19.3,
+   "papers": 9,
+   "referee": 7,
+   "moderator": 1
+  },
+  {
+   "name": "symbolic regression",
+   "outcome": "parked",
+   "messages": 30,
+   "startHour": 0.0,
+   "endHour": 2.2,
+   "papers": 9,
+   "referee": 0,
+   "moderator": 0
+  },
+  {
+   "name": "locality measures",
+   "outcome": "closed",
+   "messages": 15,
+   "startHour": 0.1,
+   "endHour": 1.2,
+   "papers": 4,
+   "referee": 0,
+   "moderator": 0
+  },
+  {
+   "name": "memory budget",
+   "outcome": "note",
+   "messages": 14,
+   "startHour": 12.9,
+   "endHour": 14.8,
+   "papers": 2,
+   "referee": 1,
+   "moderator": 0
+  },
+  {
+   "name": "Lean formalization",
+   "outcome": "parked",
+   "messages": 3,
+   "startHour": 0.2,
+   "endHour": 0.2,
+   "papers": 2,
+   "referee": 0,
+   "moderator": 0
+  }
+ ],
+ "network": {
+  "reciprocity": 0.84,
+  "density": 0.98,
+  "hostShare": 0.48,
+  "moderatorBetweenness": 0.47,
+  "betweenness": {
+   "Lu2026": 0.0,
+   "Qi2026": 0.09,
+   "Zhao2026": 0.0,
+   "Du2025": 0.0,
+   "Gerdes2026": 0.0,
+   "Hu2025": 0.0,
+   "deSchoulepnikoff2026": 0.02,
+   "Tindall2024": 0.13,
+   "Nagele2025": 0.0,
+   "Moderator": 0.47,
+   "Referee": 0.0
+  }
+ },
+ "positions": {
+  "Du2025": [
+   0.133,
+   0.173
+  ],
+  "Lu2026": [
+   0.0,
+   0.695
+  ],
+  "Hu2025": [
+   0.727,
+   0.0
+  ],
+  "Gerdes2026": [
+   0.712,
+   0.351
+  ],
+  "deSchoulepnikoff2026": [
+   0.754,
+   0.847
+  ],
+  "Nagele2025": [
+   0.397,
+   1.0
+  ],
+  "Tindall2024": [
+   0.352,
+   0.052
+  ],
+  "Qi2026": [
+   1.0,
+   0.562
+  ],
+  "Zhao2026": [
+   0.334,
+   0.433
+  ],
+  "Moderator": [
+   0.582,
+   0.536
+  ],
+  "Referee": [
+   0.943,
+   0.297
+  ]
+ },
+ "firstContacts": [
+  {
+   "hour": 0.0,
+   "a": "Du2025",
+   "b": "Lu2026",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Hu2025",
+   "b": "Gerdes2026",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "deSchoulepnikoff2026",
+   "b": "Lu2026",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Nagele2025",
+   "b": "Lu2026",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Tindall2024",
+   "b": "Hu2025",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Qi2026",
+   "b": "Hu2025",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Qi2026",
+   "b": "Lu2026",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Lu2026",
+   "b": "Tindall2024",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Zhao2026",
+   "b": "Tindall2024",
+   "kind": "direct"
+  },
+  {
+   "hour": 0.0,
+   "a": "Zhao2026",
+   "b": "Hu2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "Zhao2026",
+   "b": "Qi2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "Gerdes2026",
+   "b": "Tindall2024",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "Du2025",
+   "b": "Qi2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "Du2025",
+   "b": "Tindall2024",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "Lu2026",
+   "b": "Hu2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "deSchoulepnikoff2026",
+   "b": "Hu2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "deSchoulepnikoff2026",
+   "b": "Nagele2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.0,
+   "a": "deSchoulepnikoff2026",
+   "b": "Qi2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.1,
+   "a": "Zhao2026",
+   "b": "deSchoulepnikoff2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.1,
+   "a": "Du2025",
+   "b": "deSchoulepnikoff2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.2,
+   "a": "Hu2025",
+   "b": "Du2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.2,
+   "a": "Du2025",
+   "b": "Nagele2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.2,
+   "a": "Zhao2026",
+   "b": "Gerdes2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.8,
+   "a": "Gerdes2026",
+   "b": "deSchoulepnikoff2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 0.8,
+   "a": "Lu2026",
+   "b": "Gerdes2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 1.5,
+   "a": "Nagele2025",
+   "b": "Gerdes2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 2.4,
+   "a": "Nagele2025",
+   "b": "Tindall2024",
+   "kind": "closure"
+  },
+  {
+   "hour": 2.4,
+   "a": "Nagele2025",
+   "b": "Zhao2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 2.7,
+   "a": "deSchoulepnikoff2026",
+   "b": "Tindall2024",
+   "kind": "closure"
+  },
+  {
+   "hour": 3.2,
+   "a": "Zhao2026",
+   "b": "Du2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 3.4,
+   "a": "Gerdes2026",
+   "b": "Du2025",
+   "kind": "closure"
+  },
+  {
+   "hour": 4.0,
+   "a": "Zhao2026",
+   "b": "Lu2026",
+   "kind": "closure"
+  },
+  {
+   "hour": 19.0,
+   "a": "Qi2026",
+   "b": "Nagele2025",
+   "kind": "host"
+  },
+  {
+   "hour": 19.5,
+   "a": "Nagele2025",
+   "b": "Hu2025",
+   "kind": "host"
+  },
+  {
+   "hour": 19.5,
+   "a": "Gerdes2026",
+   "b": "Qi2026",
+   "kind": "host"
+  }
+ ]
+}
