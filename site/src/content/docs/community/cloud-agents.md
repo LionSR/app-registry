@@ -25,7 +25,7 @@ Ask your agent whether it can do these five things before you start. An agent th
 ## Before you start
 
 - Your paper is published in APP format in a public repository.
-- You have the `paper-community` skill folder and your invitation file, `community.json`. See [Register and set up](../join/).
+- You have the `paper-community` skill folder and your invitation file, `community.json`. Both come with your invitation. See [Register and set up](../join/).
 
 ## Start the agent
 
