@@ -26,13 +26,36 @@ Most of the paper agents were simulations of public arXiv papers, made without t
 4. **Review.** The Referee read each manuscript as a rendered PDF, reran the numbers, and asked for corrections. A project was finished only after the Referee accepted it.
 5. **Wrap-up.** The Moderator stopped new work. The agents finished their projects, parked open ideas as proposals, and sent a final digest to their authors.
 
-### What it produced
+### Every attempt
 
-- **Counting hidden factors.** On synthetic data with a known number of hidden factors, a standard statistical rule (the eigenvalue ratio test of Ahn and Horenstein, 2013) found the correct number in 27 of 27 cases. A sparse dictionary and a small VAE reached at most 64% and 69% of 135 trainings. The agents derived a threshold for when the rule fails, and the Referee checked it against simulation.
-- **Merged clusters.** Model selection by BIC merges two nearby clusters. For an isolated pair, the derived threshold matches simulation to about 5%.
-- **Proposals.** Ten proposals need resources that the agents did not have, for example GPU runs, data downloads, or a Lean setup. Each proposal is a decision for the authors.
+Paper agents in physics are new, so every attempt is useful, including the ones that failed. This is the full list. All results are at toy scale, run on CPU in seconds or minutes, and only AI agents checked them.
 
-All results are at toy scale and only AI agents checked them.
+**Became short manuscripts** (reviewed and accepted by the Referee):
+
+| Attempt | Result |
+|---|---|
+| Count the hidden factors in data with a known number of them | An eigenvalue-ratio rule (Ahn and Horenstein, 2013) found the correct number in 27 of 27 cases. A sparse dictionary and a small VAE reached at most 64% and 69% of 135 trainings. A derived failure threshold holds to about 15% for up to 3 factors and is low by about 2x at 8. |
+| Choose the tree of a tensor network from a few function evaluations | When the method chooses which points to evaluate, it found the right tree on both toy targets. Fitting from random points gave no useful information at any budget tried. |
+| Does the noise window where local denoisers fail move with image size? | Yes, in the direction a simple estimate predicts: the window moved from noise level 0.907 to 0.945 to 0.960 for 8, 16 and 32 pixel Ising images. One confound is only partly controlled. |
+| When does BIC merge two nearby clusters? | It loses one cluster for each close pair. For an isolated pair, the derived threshold matches simulation to about 5%. |
+| When does a capped resource cause a permanent failure? | The first claim was false as stated: a VAE was a counterexample. A narrower claim survived. |
+
+**Notes and negative results:**
+
+| Attempt | Result |
+|---|---|
+| With memory for only B numbers, does choosing the next measurement beat random ones? | A hand-written rule that chooses beat random points by 10x to 100x on curves with kinks. With noise, the gain fell to about 2x. A generic uncertainty rule was worse than random. |
+| Can a tensor train learned from a random stream of samples save memory? | Claim withdrawn. A plain binned average was better at the same memory. |
+| Does a classical streaming learner need memory of the full data size? | No, not on synthetic text: hashing features into 10 times fewer buckets cost 0.3 to 1.3 accuracy points. |
+| Does the kind of smoothness change tensor-train size? | Isolated kinks are cheap. Size grows about linearly with the number of kinks, and analytic functions stay small. |
+| Does a denoiser's Jacobian entropy peak at the transition? | No. In exact toy denoisers it grows smoothly with noise and shows a local-to-global crossover, but no peak. |
+| Can an agent run the held-out test that catches an over-broad learned formula? | Randomly generated tests exposed a planted over-broad formula in about half of the runs with 200 test configurations and in all runs with 2000. A formula that fails only on one exact pattern was never exposed. A passed test only means that nothing tried broke the formula. |
+| Does the range of correlations in a Hubbard state predict the window a neural correction needs? | Exact diagonalization on 10 sites: doping lengthens the correlation tail as the interaction grows. The real test is parked. |
+| Can mutual information between bits choose a good tensor-network tree? | Inconclusive: the tree with the most mutual information was not always the better one. |
+| How much does a separate bond dimension for each bond save? | Between 1.0x and 3.0x on five toy cases. The claim that the saving follows how uneven the bonds are was not shown. |
+| Write a theorem about tree tensor networks as a plain, checkable statement for a later Lean proof | Finished and checked against the paper's construction. |
+
+**Parked as proposals for the authors** (they need compute, data, software or money that the agents did not have): runs with real sparse-autoencoder and VAE libraries, checks with the qdisc package, an agent run on raw curves, a proof-writing agent on the checked statement, a GPU sweep over image sizes, the hashing test on IMDb data, trained normalizing flows, a tree test with the Julia package, the memory question for random samples, and the range of a neural correction against the correlation range.
 
 For charts of the activity, the projects, and who talked to whom, see the [conference analysis](kitp-2026/).
 
