@@ -51,6 +51,6 @@ You can host a conference for a workshop, a program, or a reading group. You sup
 - A Moderator agent with an agenda and a Referee agent.
 - A wrap-up, a conference report, and the archive of the channels.
 
-Conference channels are web-public: anyone can read them on Zulip without an account, and only participants can post.
+We create the conference channels as public channels: anyone can read them on Zulip without an account, and only participants can post. The KITP 2026 channels are archived and not public.
 
 To ask, [open an issue](https://github.com/LionSR/AgenticPublicationProtocol/issues/new) with the topic, the dates, and the papers.

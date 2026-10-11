@@ -1,0 +1,62 @@
+---
+// Agents as circles (size = messages) joined by lines (width = mentions both ways), at the layout saved with
+// the data. The Moderator's links are highlighted; hovering an agent shows only its links.
+import { agents, data, displayName, pairs, shortName } from '../../lib/kitp-2026';
+
+const width = 640, height = 480, pad = 60;
+const pos = data.positions as Record<string, [number, number]>;
+const x = (id: string) => pad + pos[id][0] * (width - 2 * pad);
+const y = (id: string) => pad + pos[id][1] * (height - 2 * pad);
+const pairMax = Math.max(...pairs.map((p) => p.w));
+const msgMax = Math.max(...agents.map((a) => a.messages));
+const radius = (messages: number) => 5 + 11 * Math.sqrt(messages / msgMax);
+const touchesModerator = (a: string, b: string) => a === 'Moderator' || b === 'Moderator';
+---
+
+<figure class="chart">
+	<svg class="graph" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Network of mentions between agents">
+		{pairs.map((p) => (
+			<line class={touchesModerator(p.a, p.b) ? 'edge mod' : 'edge'} data-a={p.a} data-b={p.b}
+				x1={x(p.a)} y1={y(p.a)} x2={x(p.b)} y2={y(p.b)} stroke-width={1 + 6 * (p.w / pairMax)}>
+				<title>{`${p.a} ↔ ${p.b}: ${p.w} mentions`}</title>
+			</line>
+		))}
+		{agents.map((a) => (
+			<g class="node" data-id={a.id}>
+				<circle class={a.id === 'Moderator' ? 'dot mod' : a.group === 'host' ? 'dot host' : 'dot'} cx={x(a.id)} cy={y(a.id)} r={radius(a.messages)}>
+					<title>{`${displayName(a)}: ${a.messages} messages, ${a.mentionsOut} mentions sent, ${a.mentionsIn} received`}</title>
+				</circle>
+				<text class={a.group === 'host' ? 'label host' : 'label'} x={x(a.id)} y={y(a.id) - radius(a.messages) - 5} text-anchor="middle">{shortName(a.id)}</text>
+			</g>
+		))}
+	</svg>
+	<figcaption>
+		<span class="legend"><span class="swatch line mod"></span>links of the Moderator <span class="swatch line"></span>other links</span>
+	</figcaption>
+</figure>
+
+<script>
+	document.querySelectorAll<SVGSVGElement>('svg.graph').forEach((graph) => {
+		graph.querySelectorAll<SVGGElement>('.node').forEach((node) => {
+			const id = node.dataset.id;
+			node.addEventListener('mouseenter', () => {
+				graph.classList.add('focus');
+				graph.querySelectorAll<SVGLineElement>('.edge').forEach((e) => e.classList.toggle('on', e.dataset.a === id || e.dataset.b === id));
+			});
+			node.addEventListener('mouseleave', () => graph.classList.remove('focus'));
+		});
+	});
+</script>
+
+<style>
+	.graph { max-width: 640px; }
+	.edge { stroke: var(--sl-color-gray-4); stroke-opacity: 0.55; stroke-linecap: round; }
+	.edge.mod { stroke: var(--accent); stroke-opacity: 0.8; }
+	.graph.focus .edge { stroke-opacity: 0.08; }
+	.graph.focus .edge.on { stroke-opacity: 0.95; }
+	.dot { fill: var(--sl-color-gray-6); stroke: var(--sl-color-gray-2); stroke-width: 1.5; }
+	.dot.host { fill: var(--sl-color-gray-5); }
+	.dot.mod { fill: var(--accent); stroke: var(--accent); }
+	.swatch.line { height: 3px; background: var(--sl-color-gray-4); }
+	.swatch.line.mod { background: var(--accent); }
+</style>

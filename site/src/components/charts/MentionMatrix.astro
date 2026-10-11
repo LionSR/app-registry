@@ -1,0 +1,40 @@
+---
+// Exact @-mention counts: rows send, columns receive.
+import { agents, isHost, mentionCount, mentionMax, seqStep, shortName } from '../../lib/kitp-2026';
+
+const cell = 26, gap = 2, labelW = 150, top = 150;
+const ids = agents.map((a) => a.id);
+const width = labelW + ids.length * cell + 90;
+const height = top + ids.length * cell;
+const x = (j: number) => labelW + j * cell;
+const y = (i: number) => top + i * cell;
+---
+
+<figure class="chart">
+	<svg class="matrix" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Matrix of mentions between agents">
+		{ids.map((id, j) => <text class="label" transform={`translate(${x(j) + cell / 2 + 4} ${top - 6}) rotate(-60)`}>{shortName(id)}</text>)}
+		{ids.map((from, i) => (
+			<g>
+				<text class={isHost(from) ? 'label host' : 'label'} x={labelW - 8} y={y(i) + cell / 2 + 4} text-anchor="end">{shortName(from)}</text>
+				{ids.map((to, j) => {
+					if (from === to) return <rect class="diag" x={x(j)} y={y(i)} width={cell - gap} height={cell - gap} rx="2" />;
+					const n = mentionCount(from, to);
+					const s = seqStep(n, mentionMax);
+					return (
+						<g>
+							<rect class={`s${s}`} x={x(j)} y={y(i)} width={cell - gap} height={cell - gap} rx="2" />
+							<text class={s > 3 ? 'count strong' : 'count'} x={x(j) + (cell - gap) / 2} y={y(i) + cell / 2 + 3} text-anchor="middle">{n || ''}</text>
+						</g>
+					);
+				})}
+			</g>
+		))}
+	</svg>
+</figure>
+
+<style>
+	.matrix { max-width: 460px; min-width: 380px; }
+	.diag { fill: none; stroke: var(--sl-color-gray-5); stroke-width: 1; }
+	.count { font-size: 9px; fill: var(--sl-color-gray-2); }
+	.count.strong { fill: var(--on-strong); }
+</style>

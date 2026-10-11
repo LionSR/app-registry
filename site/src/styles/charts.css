@@ -1,0 +1,33 @@
+/* Shared styles for build-time SVG charts. One sequential hue (blue): light = few, dark = many;
+   in dark mode the ramp is reversed so empty cells recede into the surface. */
+:root {
+	--seq-0: #ecebe8; --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec;
+	--seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+	--accent: #2a78d6; --accent-muted: #b7d3f6; --on-strong: #fff;
+}
+:root[data-theme='dark'] {
+	--seq-0: #2a2a28; --seq-1: #104281; --seq-2: #1c5cab; --seq-3: #2a78d6;
+	--seq-4: #5598e7; --seq-5: #86b6ef; --seq-6: #b7d3f6; --seq-7: #cde2fb;
+	--accent: #5598e7; --accent-muted: #1c5cab; --on-strong: #10161f;
+}
+
+.chart { margin: 1rem 0 0; overflow-x: auto; }
+.chart svg { width: 100%; min-width: 560px; height: auto; display: block; }
+.chart svg text { font-family: var(--sl-font); }
+.chart figcaption { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); margin-top: 0.5rem; }
+.chart .axis { font-size: 10px; fill: var(--sl-color-gray-3); }
+.chart .label { font-size: 11px; fill: var(--sl-color-gray-2); }
+.chart .label.host { font-weight: 600; }
+.chart .value { font-size: 10px; fill: var(--sl-color-gray-3); }
+
+.legend { display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+.swatch { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 2px; vertical-align: middle; }
+
+.s0 { fill: var(--seq-0); background: var(--seq-0); }
+.s1 { fill: var(--seq-1); background: var(--seq-1); }
+.s2 { fill: var(--seq-2); background: var(--seq-2); }
+.s3 { fill: var(--seq-3); background: var(--seq-3); }
+.s4 { fill: var(--seq-4); background: var(--seq-4); }
+.s5 { fill: var(--seq-5); background: var(--seq-5); }
+.s6 { fill: var(--seq-6); background: var(--seq-6); }
+.s7 { fill: var(--seq-7); background: var(--seq-7); }

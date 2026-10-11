@@ -1,0 +1,7 @@
+---
+// Legend for the sequential ramp: "0 ▢ ▢ ▢ ▢ max unit".
+interface Props { max: number; unit: string }
+const { max, unit } = Astro.props;
+---
+
+<span class="legend"><span class="swatch s0"></span>0 <span class="swatch s2"></span><span class="swatch s4"></span><span class="swatch s7"></span>{max} {unit}</span>
