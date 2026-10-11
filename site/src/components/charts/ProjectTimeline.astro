@@ -1,0 +1,43 @@
+---
+// One bar per joint project, from its first to its last message, on the conference's hour axis.
+import { data, hourTicks, projects } from '../../lib/kitp-2026';
+
+const row = 30, labelW = 170, top = 22, hourPx = 14;
+const width = labelW + data.hours * hourPx + 120;
+const height = top + projects.length * row + 20;
+const x = (hour: number) => labelW + hour * hourPx;
+const sorted = [...projects].sort((a, b) => a.startHour - b.startHour);
+---
+
+<figure class="chart">
+	<svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Timeline of joint projects">
+		{hourTicks.map((t) => (
+			<g>
+				<line class="grid" x1={x(t)} x2={x(t)} y1={top - 4} y2={height - 20} />
+				<text class="axis" x={x(t)} y={top - 8} text-anchor="middle">{t}h</text>
+			</g>
+		))}
+		{sorted.map((p, i) => {
+			const y = top + i * row + 6;
+			const w = Math.max(4, (p.endHour - p.startHour) * hourPx);
+			return (
+				<g>
+					<text class="label" x={labelW - 8} y={y + 13} text-anchor="end">{p.name}</text>
+					<rect class={p.outcome === 'manuscript' ? 'bar' : 'bar muted'} x={x(p.startHour)} y={y} width={w} height={16} rx="4">
+						<title>{`${p.name}: ${p.messages} messages from ${p.papers} paper agents, hours ${p.startHour}–${p.endHour}, Referee ${p.referee}, Moderator ${p.moderator}`}</title>
+					</rect>
+					<text class="value" x={x(p.startHour) + w + 6} y={y + 13}>{p.outcome} · {p.messages} msgs</text>
+				</g>
+			);
+		})}
+	</svg>
+	<figcaption>
+		<span class="legend"><span class="swatch bar"></span>became a manuscript <span class="swatch bar muted"></span>other outcome</span>
+	</figcaption>
+</figure>
+
+<style>
+	.grid { stroke: var(--sl-color-gray-6); stroke-width: 1; }
+	.bar { fill: var(--accent); background: var(--accent); }
+	.bar.muted { fill: var(--accent-muted); background: var(--accent-muted); }
+</style>

@@ -1,0 +1,54 @@
+---
+// Messages per agent per hour, with numbered milestone markers.
+import { agents, data, displayName, hourTicks, milestones, seqStep, shortName } from '../../lib/kitp-2026';
+import SeqLegend from './SeqLegend.astro';
+
+const cell = 16, gap = 2, labelW = 150, top = 22;
+const width = labelW + data.hours * cell + 16;
+const bottom = top + agents.length * cell;
+const max = Math.max(...agents.flatMap((a) => a.hourly));
+const x = (hour: number) => labelW + hour * cell;
+
+// The first and last milestones are the start and end; the rest are marked.
+// Markers less than 3 hours apart share one label, e.g. "1–5".
+const marks = milestones.slice(1, -1).map((m, i) => ({ ...m, n: i + 1 }));
+const groups = marks.reduce<(typeof marks)[]>((acc, m) => {
+	const last = acc.at(-1);
+	if (last && m.hour - last[0].hour < 3) last.push(m);
+	else acc.push([m]);
+	return acc;
+}, []);
+---
+
+<figure class="chart">
+	<svg viewBox={`0 0 ${width} ${bottom + 24}`} role="img" aria-label="Heatmap of messages per agent per hour">
+		{hourTicks.map((t) => <text class="axis" x={x(t)} y={top - 8} text-anchor="middle">{t}h</text>)}
+		{agents.map((a, r) => (
+			<g>
+				<text class="label" x={labelW - 8} y={top + r * cell + cell / 2 + 4} text-anchor="end">
+					{a.group === 'sim' ? `${shortName(a.id)} (sim)` : shortName(a.id)}
+				</text>
+				{a.hourly.map((v, c) => (
+					<rect class={`s${seqStep(v, max)}`} x={x(c)} y={top + r * cell} width={cell - gap} height={cell - gap} rx="2">
+						<title>{`${displayName(a)}, hour ${c}–${c + 1}: ${v} message${v === 1 ? '' : 's'}`}</title>
+					</rect>
+				))}
+			</g>
+		))}
+		{marks.map((m) => <line class="milestone" x1={x(m.hour)} x2={x(m.hour)} y1={top} y2={bottom} />)}
+		{groups.map((g) => (
+			<text class="axis" x={x((g[0].hour + g.at(-1)!.hour) / 2)} y={bottom + 14} text-anchor="middle">
+				{g.length === 1 ? g[0].n : `${g[0].n}–${g.at(-1)!.n}`}
+			</text>
+		))}
+	</svg>
+	<figcaption>
+		<SeqLegend max={max} unit="messages per hour" />
+		<ol class="milestones">{marks.map((m) => <li>{m.label} (hour {m.hour})</li>)}</ol>
+	</figcaption>
+</figure>
+
+<style>
+	.milestone { stroke: var(--sl-color-gray-2); stroke-width: 1; stroke-dasharray: 3 3; }
+	.milestones { margin-top: 0.5rem; padding-left: 1.25rem; }
+</style>
