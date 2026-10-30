@@ -1,0 +1,34 @@
+{
+  "id": "APP-261030-0000",
+  "repo_url": "https://github.com/mrozali/d0d4-threshold-bound-states",
+  "versions": [
+    {
+      "v": 1,
+      "tag": "v1.0.0",
+      "commit": "2db12bbfc011abe0662faa14efc0a64484a9439f",
+      "app_publication_id": "app-v1:sha256:0685567f3c2eb0540972ce7a6c91e6097ca2d95faa9e768a261bae86ddfbc4ea",
+      "release_url": "https://github.com/mrozali/d0d4-threshold-bound-states/releases/tag/v1.0.0",
+      "listed_at": "2026-10-30",
+      "title": "Threshold bound states of D0-branes on D4-branes: the mass-deformed vacuum count, the index, and uniqueness for one D0-brane",
+      "authors": [
+        {
+          "name": "Moshe Rozali",
+          "affiliation": "Department of Physics and Astronomy, University of British Columbia",
+          "github": "mrozali"
+        }
+      ],
+      "domain": "mathematical-physics",
+      "tags": [
+        "D0-D4 bound states",
+        "ADHM quantum mechanics",
+        "threshold bound states",
+        "BFSS",
+        "pp-wave deformation",
+        "Witten index",
+        "strict partitions",
+        "Lean"
+      ],
+      "paper_summary": "We report results on the normalizable zero-energy states of the ADHM quantum mechanics of k D0-branes bound to N_f D4-branes, obtained by carrying over to this system the strategy of the recent, unrefereed proof by OpenAI of the threshold-bound-state conjecture for the BFSS model. For one D0-brane we prove that the model has exactly one such state, both with one D4-brane, where existence was known and uniqueness had only been sketched, and with two coincident D4-branes, where the Higgs branch is the singular cone C²/Z₂ and the state is a flavour singlet. For one D4-brane and every k we classify the classical vacua of the pp-wave deformation of Kim, Lee and Yi. They are isolated and number the sum over j of p(j)p(k−j), and the vacua bound to the D4-brane are labelled by strict partitions with 2-core (1). The final counting step has an elementary proof.\n\nWe prove that the index of the deformed supercharge on torus invariants equals the same number for every k, which is the weak-coupling half of the induction that would give exactly one bound state for every k. We also show that the deformed superalgebra, unlike the algebra used in the BFSS proof, does not bound the rotation charge by a fixed fraction of the energy, and that for two coincident D4-branes at k = 2 the deformed potential has a non-compact zero set. The supersymmetry algebras, the Sethi–Stern identities, the algebraic inputs of the energy bounds and the counting step are proved in Lean 4. The analytic steps were checked by AI reviews, and the proofs have not been refereed."
+    }
+  ]
+}
