@@ -1,0 +1,48 @@
+{
+  "id": "APP-261111-0000",
+  "repo_url": "https://github.com/mrozali/categorical-rmt",
+  "versions": [
+    {
+      "v": 1,
+      "tag": "v1.0.1",
+      "commit": "037aadb03423673cf02f079866cf4a85fa106f07",
+      "app_publication_id": "app-v1:sha256:1625bb1eba8e628cc632cc91e47ea51172e2df87dfc088c9facf5ea10d57eddf",
+      "release_url": "https://github.com/mrozali/categorical-rmt/releases/tag/v1.0.1",
+      "listed_at": "2026-11-11",
+      "title": "Categorical RMT",
+      "authors": [
+        {
+          "name": "Chuanxin Cui",
+          "affiliation": "University of British Columbia"
+        },
+        {
+          "name": "Kristan Jensen",
+          "affiliation": "University of Victoria"
+        },
+        {
+          "name": "Sridip Pal",
+          "affiliation": "Institut des Hautes Etudes Scientifiques, Tata Institute of Fundamental Research"
+        },
+        {
+          "name": "Moshe Rozali",
+          "affiliation": "University of British Columbia",
+          "github": "mrozali"
+        }
+      ],
+      "domain": "hep-th",
+      "arxiv_id": "2611.13093",
+      "tags": [
+        "random matrix theory",
+        "quantum chaos",
+        "non-invertible symmetry",
+        "tube algebra",
+        "anyon chains",
+        "2d CFT",
+        "AdS3 gravity",
+        "SymTFT",
+        "spectral form factor"
+      ],
+      "paper_summary": "Random matrix theory (RMT) describes the level statistics of chaotic systems one symmetry sector at a time. The paper proposes its analogue for local quantum systems on a circle with ordinary or non-invertible symmetries. Symmetry defects define twisted Hilbert spaces, and the symmetry sectors are irreducible representations of the tube algebra, which acts within and between these spaces. The symmetry fixes exact degeneracies and identifications among sectors, and ordinary RMT describes the rest, with unrelated blocks statistically independent. This is *categorical RMT*. For a non-invertible symmetry it goes beyond ordinary RMT, since Hilbert spaces with different twists can share a sector, and so part of their spectrum, though no invertible symmetry relates them.\n\nThe proposal is confirmed in a chaotic Fibonacci anyon chain and checked in chaotic $S_3$ chains. It is extended to primary states at fixed spin in 1+1-dimensional CFTs, where modular covariance requires additional correlations. For continuous symmetries, the Sugawara construction and spectral flow isolate a neutral spectrum, which can have symplectic statistics even in a bosonic theory. In holographic CFTs, torus wormholes decorated by the SymTFT or by Chern–Simons theory realize the predicted ramp and its modular completion."
+    }
+  ]
+}
