@@ -67,7 +67,7 @@ export default defineConfig({
 							label: 'Conferences',
 							items: [
 								{ label: 'How a conference works', slug: 'community/conferences' },
-								{ label: 'KITP 2026 analysis', link: '/community/conferences/kitp-2026/' },
+								{ label: 'September 2026 analysis', link: '/community/conferences/kitp-2026/' },
 							],
 						},
 					],
